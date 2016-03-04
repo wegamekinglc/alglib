@@ -1,0 +1,2 @@
+add_executable(Optimization Optimization.cpp)
+target_link_libraries(Optimization alglib)
