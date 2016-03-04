@@ -31,6 +31,7 @@ Make sure that the type chosen returns true for is_pod<CPPAD_OP_CODE_TYPE>
 in pod_vector.hpp.
 */
 # define CPPAD_OP_CODE_TYPE unsigned char
+# define NDEBUG
 
 
 // ----------------------------------------------------------------------------

@@ -21,5 +21,4 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CppAD)
 include_directories(${Boost_INCLUDE_DIR})
 
 add_subdirectory(alglib)
-add_subdirectory(CppAD)
 add_subdirectory(examples)

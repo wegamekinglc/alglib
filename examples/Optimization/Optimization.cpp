@@ -1,63 +1,351 @@
-#include "stdafx.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include "optimization.h"
+#include <iostream>
+#include <assert.h>
 
-using namespace alglib;
-void function1_grad(const real_1d_array &x, double &func, real_1d_array &grad, void *ptr)
-{
-    //
-    // this callback calculates f(x0,x1) = 100*(x0+3)^4 + (x1-3)^4
-    // and its derivatives df/d0 and df/dx1
-    //
-    func = 100 * pow(x[0] + 3, 4) + pow(x[1] - 3, 4);
-    grad[0] = 400 * pow(x[0] + 3, 3);
-    grad[1] = 4 * pow(x[1] - 3, 3);
+#include <boost/timer.hpp>
+#include <boost/bind.hpp>
+#include <optimization.h>
+#include "CostCalculator_fd.hpp"
+#include "CostCalculator_analytic.hpp"
+
+#include <cppad/cppad.hpp>
+#include <vector>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/blas.hpp>
+
+#include "adept.h"
+
+using CppAD::AD;
+
+class CostCalculator_cppad {
+    public:
+        CostCalculator_cppad(const real_1d_array expectReturn,
+            const real_2d_array& varMatrix,
+            const real_1d_array& tradingCost,
+            const real_1d_array& currentWeight) {
+            assert(expectReturn.length() == varMatrix.rows());
+            assert(varMatrix.rows() == varMatrix.cols());
+            assert(tradingCost.length() == varMatrix.rows());
+            assert(currentWeight.length() == varMatrix.rows());
+            variableNumber_ = expectReturn.length();
+
+            // 复制参数
+
+            expectReturn_ = boost::numeric::ublas::vector<double>(variableNumber_);
+            tradingCost_ = boost::numeric::ublas::vector<double>(variableNumber_);
+            currentWeight_ = boost::numeric::ublas::vector<double>(variableNumber_);
+            varMatrix_ = boost::numeric::ublas::matrix<double>(variableNumber_, variableNumber_);
+
+            for (int i = 0; i != variableNumber_; ++i) {
+                expectReturn_[i] = expectReturn[i];
+                tradingCost_[i] = tradingCost[i];
+                currentWeight_[i] = currentWeight[i];
+                for (int j = 0; j != variableNumber_; ++j)
+                    varMatrix_(i,j) = varMatrix[i][j];
+            }
+                
+            // 初始化ad函数
+
+            std::vector<AD<double> > X(variableNumber_);
+
+            for (int i = 0; i != variableNumber_; ++i)
+                X[i] = currentWeight_[i];
+
+            CppAD::Independent(X);
+
+            boost::numeric::ublas::vector<AD<double> > realX(variableNumber_);
+            for (int i = 0; i != variableNumber_; ++i)
+                realX[i] = X[i];
+
+            AD<double> totalCost = 0.0;
+
+            // 计算 expect return contribution
+            totalCost -= boost::numeric::ublas::inner_prod(expectReturn_, realX);
+
+            // 计算 risk cost
+            totalCost += 0.5 * boost::numeric::ublas::inner_prod(
+                boost::numeric::ublas::prod(varMatrix_, realX), realX);
+
+            // 计算 trading cost
+            for (int i = 0; i != variableNumber_; ++i) {
+                AD<double> weightChange = realX[i] - currentWeight_[i];
+                if (weightChange < 0.)
+                    totalCost += -weightChange * tradingCost_[i];
+                else
+                    totalCost += weightChange * tradingCost_[i];
+            }
+
+            std::vector<AD<double> > Y(1);
+            Y[0] = totalCost;
+            fImpl_ = CppAD::ADFun<double>(X, Y);
+        }
+
+        void calculateCost(const real_1d_array& xWeight, double& func, real_1d_array& grad) {
+
+            std::vector<double> x(variableNumber_);
+
+            for (int i = 0; i != variableNumber_; ++i)
+                x[i] = xWeight[i];
+
+            std::vector<double> y = fImpl_.Forward(0, x);
+            std::vector<double> jac = fImpl_.Jacobian(x);
+
+            func = y[0];
+
+            for (int i = 0; i != variableNumber_; ++i)
+                grad[i] = jac[i];
+        }
+
+private:
+    boost::numeric::ublas::vector<double> expectReturn_;
+    boost::numeric::ublas::matrix<double> varMatrix_;
+    boost::numeric::ublas::vector<double> tradingCost_;
+    boost::numeric::ublas::vector<double> currentWeight_;
+    int variableNumber_;
+    CppAD::ADFun<double> fImpl_;
+};
+
+
+inline void calculate_cppad(const real_1d_array& xWeight, double& func, real_1d_array& grad, void *ptr) {
+    ((CostCalculator_cppad*)ptr)->calculateCost(xWeight, func, grad);
 }
+
+//////////////////////////
+
+
+class CostCalculator_adept {
+public:
+    CostCalculator_adept(const real_1d_array expectReturn,
+        const real_2d_array& varMatrix,
+        const real_1d_array& tradingCost,
+        const real_1d_array& currentWeight) {
+        assert(expectReturn.length() == varMatrix.rows());
+        assert(varMatrix.rows() == varMatrix.cols());
+        assert(tradingCost.length() == varMatrix.rows());
+        assert(currentWeight.length() == varMatrix.rows());
+        variableNumber_ = expectReturn.length();
+
+        // 复制参数
+
+        expectReturn_ = boost::numeric::ublas::vector<double>(variableNumber_);
+        tradingCost_ = boost::numeric::ublas::vector<double>(variableNumber_);
+        currentWeight_ = boost::numeric::ublas::vector<double>(variableNumber_);
+        varMatrix_ = boost::numeric::ublas::matrix<double>(variableNumber_, variableNumber_);
+
+        for (int i = 0; i != variableNumber_; ++i) {
+            expectReturn_[i] = expectReturn[i];
+            tradingCost_[i] = tradingCost[i];
+            currentWeight_[i] = currentWeight[i];
+            for (int j = 0; j != variableNumber_; ++j)
+                varMatrix_(i, j) = varMatrix[i][j];
+        }
+    }
+
+    void calculateCost(const real_1d_array& xWeight, double& func, real_1d_array& grad) {
+
+        adept::Stack stack;
+        using adept::adouble;
+
+        boost::numeric::ublas::vector<adouble> realX(variableNumber_);
+
+        for (int i = 0; i != variableNumber_; ++i)
+            realX[i] = xWeight[i];
+
+        stack.new_recording();
+
+        adouble totalCost = 0.0;
+
+        // 计算 expect return contribution
+        totalCost -= boost::numeric::ublas::inner_prod(expectReturn_, realX);
+
+        // 计算 risk cost
+        totalCost += 0.5 * boost::numeric::ublas::inner_prod(
+            boost::numeric::ublas::prod(varMatrix_, realX), realX);
+
+        // 计算 trading cost
+        for (int i = 0; i != variableNumber_; ++i) {
+            adouble weightChange = realX[i] - currentWeight_[i];
+            if (weightChange < 0.)
+                totalCost += -weightChange * tradingCost_[i];
+            else
+                totalCost += weightChange * tradingCost_[i];
+        }
+
+        totalCost.set_gradient(1.0);
+        stack.compute_adjoint();
+
+        func = totalCost.value();
+
+        for (int i = 0; i != variableNumber_; ++i)
+            grad[i] = realX[i].get_gradient();
+
+    }
+
+private:
+    boost::numeric::ublas::vector<double> expectReturn_;
+    boost::numeric::ublas::matrix<double> varMatrix_;
+    boost::numeric::ublas::vector<double> tradingCost_;
+    boost::numeric::ublas::vector<double> currentWeight_;
+    int variableNumber_;
+    CppAD::ADFun<double> fImpl_;
+};
+
+inline void calculate_adept(const real_1d_array& xWeight, double& func, real_1d_array& grad, void *ptr) {
+    ((CostCalculator_adept*)ptr)->calculateCost(xWeight, func, grad);
+}
+
 
 int main(int argc, char **argv)
 {
-    //
-    // This example demonstrates minimization of f(x,y) = 100*(x+3)^4+(y-3)^4
-    // subject to inequality constraints:
-    // * x>=2 (posed as general linear constraint),
-    // * x+y>=6
-    // using BLEIC optimizer.
-    //
-    real_1d_array x = "[5,5]";
-    real_2d_array c = "[[1,0,2],[1,1,6]]";
-    integer_1d_array ct = "[1,1]";
-    minbleicstate state;
-    minbleicreport rep;
 
-    //
-    // These variables define stopping conditions for the optimizer.
-    //
-    // We use very simple condition - |g|<=epsg
-    //
+    // 读取协方差矩阵
+    real_2d_array varMatrix;
+    alglib::read_csv("d:/20160303_500.csv", ',', 0, varMatrix);
+
+    int variableNumber = varMatrix.rows();
+
+    // 设置交易成本
+    real_1d_array tradingCost;
+    tradingCost.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        tradingCost[i] = 0.003;
+
+    // 设置预期收益
+    real_1d_array expectReturn;
+    expectReturn.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        expectReturn[i] = i / 5.0 /variableNumber;
+
+    // 设置当前组合权重
+    real_1d_array currentWeight;
+    currentWeight.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        currentWeight[i] = 1.0 / variableNumber;
+
+    boost::timer timer;
+    real_1d_array startWeight;
+    startWeight.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        startWeight[i] = 1.0 / variableNumber;
+
+    // constraints
+    real_1d_array bndl;
+    bndl.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        bndl[i] = 0.0;
+
+    real_1d_array bndu;
+    bndu.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        bndu[i] = 1.0;
+
+    real_2d_array linearConMatrix;
+    integer_1d_array condtion = "[0]";
+    linearConMatrix.setlength(1, variableNumber + 1);
+    for (int i = 0; i != variableNumber; ++i)
+        linearConMatrix[0][i] = 1.0;
+    linearConMatrix[0][variableNumber] = 1.0;
+
+    // stop condition
     double epsg = 0.000001;
     double epsf = 0;
     double epsx = 0;
-    ae_int_t maxits = 0;
+    alglib::ae_int_t maxits = 0;
 
-    //
-    // Now we are ready to actually optimize something:
-    // * first we create optimizer
-    // * we add linear constraints
-    // * we tune stopping conditions
-    // * and, finally, optimize and obtain results...
-    //
-    minbleiccreate(x, state);
-    minbleicsetlc(state, c, ct);
-    minbleicsetcond(state, epsg, epsf, epsx, maxits);
-    alglib::minbleicoptimize(state, function1_grad);
-    minbleicresults(state, x, rep);
 
-    //
-    // ...and evaluate these results
-    //
-    printf("%d\n", int(rep.terminationtype)); // EXPECTED: 4
-    printf("%s\n", x.tostring(2).c_str()); // EXPECTED: [2,4]
+    // 优化权重，使用 Finite difference 计算 gradient
+    /*{
+        CostCalculator_fd costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        double diffstep = 1.0e-6;
+        alglib::minbleicstate state;
+        alglib::minbleicreport rep;
+
+        alglib::minbleiccreatef(startWeight, diffstep, state);
+        alglib::minbleicsetlc(state, linearConMatrix, condtion);
+        alglib::minbleicsetbc(state, bndl, bndu);
+        alglib::minbleicsetcond(state, epsg, epsf, epsx, maxits);
+
+        alglib::minbleicoptimize(state, calculate_fd, NULL, &costCalc);
+
+        real_1d_array targetWeight;
+        alglib::minbleicresults(state, targetWeight, rep);
+
+        std::cout << rep.terminationtype << std::endl;
+        std::cout << targetWeight.tostring(2) << std::endl;
+
+        std::cout << "差分方法计算耗时: " << timer.elapsed() << std::endl;
+    }*/
+
+
+    // 优化权重，使用解析方法计算 gradient
+    {
+        CostCalculator_analytic costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        timer.restart();
+        alglib::minbleicstate state_analytic;
+        alglib::minbleicreport rep_analytic;
+
+        alglib::minbleiccreate(startWeight, state_analytic);
+        alglib::minbleicsetlc(state_analytic, linearConMatrix, condtion);
+        alglib::minbleicsetbc(state_analytic, bndl, bndu);
+        alglib::minbleicsetcond(state_analytic, epsg, epsf, epsx, maxits);
+
+        real_1d_array targetWeight;
+        alglib::minbleicoptimize(state_analytic, calculate_analytic, NULL, &costCalc);
+        alglib::minbleicresults(state_analytic, targetWeight, rep_analytic);
+
+        std::cout << rep_analytic.terminationtype << std::endl;
+        std::cout << targetWeight.tostring(2) << std::endl;
+
+        std::cout << "解析方法计算耗时 : " << timer.elapsed() << std::endl;
+    }
+
+    // 优化权重，使用 automatic differentiation (cppad) 计算 gradient
+    {
+        CostCalculator_cppad costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        timer.restart();
+        alglib::minbleicstate state_ad;
+        alglib::minbleicreport rep_ad;
+
+        alglib::minbleiccreate(startWeight, state_ad);
+        alglib::minbleicsetlc(state_ad, linearConMatrix, condtion);
+        alglib::minbleicsetbc(state_ad, bndl, bndu);
+        alglib::minbleicsetcond(state_ad, epsg, epsf, epsx, maxits);
+
+        real_1d_array targetWeight;
+        alglib::minbleicoptimize(state_ad, calculate_cppad, NULL, &costCalc);
+        alglib::minbleicresults(state_ad, targetWeight, rep_ad);
+
+        std::cout << rep_ad.terminationtype << std::endl;
+        std::cout << targetWeight.tostring(2) << std::endl;
+
+        std::cout << "AD方法计算耗时 (cppad) : " << timer.elapsed() << std::endl;
+    }
+
+    // 优化权重，使用 automatic differentiation (adept) 计算 gradient
+    {
+        CostCalculator_adept costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        timer.restart();
+        alglib::minbleicstate state_ad;
+        alglib::minbleicreport rep_ad;
+
+        alglib::minbleiccreate(startWeight, state_ad);
+        alglib::minbleicsetlc(state_ad, linearConMatrix, condtion);
+        alglib::minbleicsetbc(state_ad, bndl, bndu);
+        alglib::minbleicsetcond(state_ad, epsg, epsf, epsx, maxits);
+
+        real_1d_array targetWeight;
+        alglib::minbleicoptimize(state_ad, calculate_adept, NULL, &costCalc);
+        alglib::minbleicresults(state_ad, targetWeight, rep_ad);
+
+        std::cout << rep_ad.terminationtype << std::endl;
+        std::cout << targetWeight.tostring(2) << std::endl;
+
+        std::cout << "AD方法计算耗时 (adept) : " << timer.elapsed() << std::endl;
+    }
+
     return 0;
 }
