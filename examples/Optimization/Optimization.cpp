@@ -1,5 +1,4 @@
 #include <iostream>
-#include <assert.h>
 
 #include <boost/timer.hpp>
 #include <boost/bind.hpp>
@@ -8,7 +7,6 @@
 #include "CostCalculator_analytic.hpp"
 
 #include <cppad/cppad.hpp>
-#include <vector>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/blas.hpp>
@@ -29,8 +27,6 @@ class CostCalculator_cppad {
             assert(currentWeight.length() == varMatrix.rows());
             variableNumber_ = expectReturn.length();
 
-            // ¸´ÖÆ²ÎÊý
-
             expectReturn_ = boost::numeric::ublas::vector<double>(variableNumber_);
             tradingCost_ = boost::numeric::ublas::vector<double>(variableNumber_);
             currentWeight_ = boost::numeric::ublas::vector<double>(variableNumber_);
@@ -43,8 +39,6 @@ class CostCalculator_cppad {
                 for (int j = 0; j != variableNumber_; ++j)
                     varMatrix_(i,j) = varMatrix[i][j];
             }
-                
-            // ³õÊ¼»¯adº¯Êý
 
             std::vector<AD<double> > X(variableNumber_);
 
@@ -59,14 +53,11 @@ class CostCalculator_cppad {
 
             AD<double> totalCost = 0.0;
 
-            // ¼ÆËã expect return contribution
             totalCost -= boost::numeric::ublas::inner_prod(expectReturn_, realX);
 
-            // ¼ÆËã risk cost
             totalCost += 0.5 * boost::numeric::ublas::inner_prod(
                 boost::numeric::ublas::prod(varMatrix_, realX), realX);
 
-            // ¼ÆËã trading cost
             for (int i = 0; i != variableNumber_; ++i) {
                 AD<double> weightChange = realX[i] - currentWeight_[i];
                 if (weightChange < 0.)
@@ -125,8 +116,6 @@ public:
         assert(currentWeight.length() == varMatrix.rows());
         variableNumber_ = expectReturn.length();
 
-        // ¸´ÖÆ²ÎÊý
-
         expectReturn_ = boost::numeric::ublas::vector<double>(variableNumber_);
         tradingCost_ = boost::numeric::ublas::vector<double>(variableNumber_);
         currentWeight_ = boost::numeric::ublas::vector<double>(variableNumber_);
@@ -155,14 +144,12 @@ public:
 
         adouble totalCost = 0.0;
 
-        // ¼ÆËã expect return contribution
         totalCost -= boost::numeric::ublas::inner_prod(expectReturn_, realX);
 
-        // ¼ÆËã risk cost
         totalCost += 0.5 * boost::numeric::ublas::inner_prod(
             boost::numeric::ublas::prod(varMatrix_, realX), realX);
 
-        // ¼ÆËã trading cost
+        // ï¿½ï¿½ï¿½ï¿½ trading cost
         for (int i = 0; i != variableNumber_; ++i) {
             adouble weightChange = realX[i] - currentWeight_[i];
             if (weightChange < 0.)
@@ -187,7 +174,6 @@ private:
     boost::numeric::ublas::vector<double> tradingCost_;
     boost::numeric::ublas::vector<double> currentWeight_;
     int variableNumber_;
-    CppAD::ADFun<double> fImpl_;
 };
 
 inline void calculate_adept(const real_1d_array& xWeight, double& func, real_1d_array& grad, void *ptr) {
@@ -197,26 +183,24 @@ inline void calculate_adept(const real_1d_array& xWeight, double& func, real_1d_
 
 int main(int argc, char **argv)
 {
-
-    // ¶ÁÈ¡Ð­·½²î¾ØÕó
     real_2d_array varMatrix;
-    alglib::read_csv("d:/20160303_500.csv", ',', 0, varMatrix);
+    alglib::read_csv("d:/20160303_1000.csv", ',', 0, varMatrix);
 
     int variableNumber = varMatrix.rows();
 
-    // ÉèÖÃ½»Ò×³É±¾
+    // ï¿½ï¿½ï¿½Ã½ï¿½ï¿½×³É±ï¿½
     real_1d_array tradingCost;
     tradingCost.setlength(variableNumber);
     for (int i = 0; i != variableNumber; ++i)
         tradingCost[i] = 0.003;
 
-    // ÉèÖÃÔ¤ÆÚÊÕÒæ
+    // ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     real_1d_array expectReturn;
     expectReturn.setlength(variableNumber);
     for (int i = 0; i != variableNumber; ++i)
         expectReturn[i] = i / 5.0 /variableNumber;
 
-    // ÉèÖÃµ±Ç°×éºÏÈ¨ÖØ
+    // ï¿½ï¿½ï¿½Ãµï¿½Ç°ï¿½ï¿½ï¿½È¨ï¿½ï¿½
     real_1d_array currentWeight;
     currentWeight.setlength(variableNumber);
     for (int i = 0; i != variableNumber; ++i)
@@ -252,33 +236,6 @@ int main(int argc, char **argv)
     double epsx = 0;
     alglib::ae_int_t maxits = 0;
 
-
-    // ÓÅ»¯È¨ÖØ£¬Ê¹ÓÃ Finite difference ¼ÆËã gradient
-    /*{
-        CostCalculator_fd costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
-
-        double diffstep = 1.0e-6;
-        alglib::minbleicstate state;
-        alglib::minbleicreport rep;
-
-        alglib::minbleiccreatef(startWeight, diffstep, state);
-        alglib::minbleicsetlc(state, linearConMatrix, condtion);
-        alglib::minbleicsetbc(state, bndl, bndu);
-        alglib::minbleicsetcond(state, epsg, epsf, epsx, maxits);
-
-        alglib::minbleicoptimize(state, calculate_fd, NULL, &costCalc);
-
-        real_1d_array targetWeight;
-        alglib::minbleicresults(state, targetWeight, rep);
-
-        std::cout << rep.terminationtype << std::endl;
-        std::cout << targetWeight.tostring(2) << std::endl;
-
-        std::cout << "²î·Ö·½·¨¼ÆËãºÄÊ±: " << timer.elapsed() << std::endl;
-    }*/
-
-
-    // ÓÅ»¯È¨ÖØ£¬Ê¹ÓÃ½âÎö·½·¨¼ÆËã gradient
     {
         CostCalculator_analytic costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
@@ -295,36 +252,28 @@ int main(int argc, char **argv)
         alglib::minbleicoptimize(state_analytic, calculate_analytic, NULL, &costCalc);
         alglib::minbleicresults(state_analytic, targetWeight, rep_analytic);
 
-        std::cout << rep_analytic.terminationtype << std::endl;
-        std::cout << targetWeight.tostring(2) << std::endl;
-
-        std::cout << "½âÎö·½·¨¼ÆËãºÄÊ± : " << timer.elapsed() << std::endl;
+        std::cout << "analytic method : " << timer.elapsed() << std::endl;
     }
 
-    // ÓÅ»¯È¨ÖØ£¬Ê¹ÓÃ automatic differentiation (cppad) ¼ÆËã gradient
     {
         CostCalculator_cppad costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
         timer.restart();
-        alglib::minbleicstate state_ad;
-        alglib::minbleicreport rep_ad;
+        alglib::minbleicstate state_cppad;
+        alglib::minbleicreport rep_cppad;
 
-        alglib::minbleiccreate(startWeight, state_ad);
-        alglib::minbleicsetlc(state_ad, linearConMatrix, condtion);
-        alglib::minbleicsetbc(state_ad, bndl, bndu);
-        alglib::minbleicsetcond(state_ad, epsg, epsf, epsx, maxits);
+        alglib::minbleiccreate(startWeight, state_cppad);
+        alglib::minbleicsetlc(state_cppad, linearConMatrix, condtion);
+        alglib::minbleicsetbc(state_cppad, bndl, bndu);
+        alglib::minbleicsetcond(state_cppad, epsg, epsf, epsx, maxits);
 
         real_1d_array targetWeight;
-        alglib::minbleicoptimize(state_ad, calculate_cppad, NULL, &costCalc);
-        alglib::minbleicresults(state_ad, targetWeight, rep_ad);
+        alglib::minbleicoptimize(state_cppad, calculate_cppad, NULL, &costCalc);
+        alglib::minbleicresults(state_cppad, targetWeight, rep_cppad);
 
-        std::cout << rep_ad.terminationtype << std::endl;
-        std::cout << targetWeight.tostring(2) << std::endl;
-
-        std::cout << "AD·½·¨¼ÆËãºÄÊ± (cppad) : " << timer.elapsed() << std::endl;
+        std::cout << "adjoint differentiation (cppad): " << timer.elapsed() << std::endl;
     }
 
-    // ÓÅ»¯È¨ÖØ£¬Ê¹ÓÃ automatic differentiation (adept) ¼ÆËã gradient
     {
         CostCalculator_adept costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
@@ -341,10 +290,29 @@ int main(int argc, char **argv)
         alglib::minbleicoptimize(state_ad, calculate_adept, NULL, &costCalc);
         alglib::minbleicresults(state_ad, targetWeight, rep_ad);
 
-        std::cout << rep_ad.terminationtype << std::endl;
-        std::cout << targetWeight.tostring(2) << std::endl;
+        std::cout << "adjoint differentiation (adept): " << timer.elapsed() << std::endl;
+    }
 
-        std::cout << "AD·½·¨¼ÆËãºÄÊ± (adept) : " << timer.elapsed() << std::endl;
+    {
+        CostCalculator_fd costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        timer.restart();
+
+        double diffstep = 1.0e-6;
+        alglib::minbleicstate state;
+        alglib::minbleicreport rep;
+
+        alglib::minbleiccreatef(startWeight, diffstep, state);
+        alglib::minbleicsetlc(state, linearConMatrix, condtion);
+        alglib::minbleicsetbc(state, bndl, bndu);
+        alglib::minbleicsetcond(state, epsg, epsf, epsx, maxits);
+
+        alglib::minbleicoptimize(state, calculate_fd, NULL, &costCalc);
+
+        real_1d_array targetWeight;
+        alglib::minbleicresults(state, targetWeight, rep);
+
+        std::cout << "finite difference: " << timer.elapsed() << std::endl;
     }
 
     return 0;

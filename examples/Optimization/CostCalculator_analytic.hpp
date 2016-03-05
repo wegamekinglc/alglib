@@ -2,6 +2,7 @@
 #define cost_calculator_analytic_hpp
 
 #include <ap.h>
+#include <assert.h>
 
 using alglib::real_1d_array;
 using alglib::real_2d_array;
