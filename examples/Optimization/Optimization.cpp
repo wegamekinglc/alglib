@@ -19,7 +19,7 @@
  * \bar w : current portfolio allocation vector.
  *
  * for this problem we use single optimization method `minbleic` which are implemented in Alglib combined with
- * the following 4 ways to calculate cost function or its corresponding gradient:
+ * the following 3 ways to calculate cost function or its corresponding gradient:
  *
  * 1. `calculate_fd`
  *
@@ -30,11 +30,7 @@
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes.
  *
- * 3. `calculate_cppad`
- *
- * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool CppAD,
- *
- * 4. `calculate_adept`
+ * 3. `calculate_adept`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool Adept,
  */
@@ -42,7 +38,6 @@
 #include "ParameterReader.hpp"
 #include "CostCalculator_fd.hpp"
 #include "CostCalculator_analytic.hpp"
-#include "CostCalculator_cppad.hpp"
 #include "CostCalculator_adept.hpp"
 #include <boost/timer.hpp>
 #include <optimization.h>
@@ -60,7 +55,7 @@ int main(int argc, char **argv)
      * currentWeight: current portfolio allocation vector of the securities.
      */
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
-            parameters = parameterReader("/home/wegamekinglc/Documents/github/coding/alglib/data/20160303_100.csv");
+            parameters = parameterReader("d:/20160303_500.csv");
 
     real_2d_array varMatrix = parameters.get<0>();
     real_1d_array tradingCost = parameters.get<1>();
@@ -131,29 +126,6 @@ int main(int argc, char **argv)
                   << "s\tfunction value: " << state_analytic.f
                   << "\tfunction evaluations: " << rep_analytic.nfev
                   << "\ttermination: " << rep_analytic.terminationtype << std::endl;
-    }
-
-    {
-        CostCalculator_cppad costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
-
-        timer.restart();
-        alglib::minbleicstate state_cppad;
-        alglib::minbleicreport rep_cppad;
-
-        alglib::minbleiccreate(startWeight, state_cppad);
-        alglib::minbleicsetlc(state_cppad, conMatrix, condType);
-        alglib::minbleicsetbc(state_cppad, bndl, bndu);
-        alglib::minbleicsetcond(state_cppad, epsg, epsf, epsx, maxits);
-
-        real_1d_array targetWeight;
-
-        alglib::minbleicoptimize(state_cppad, calculate_cppad, NULL, &costCalc);
-        alglib::minbleicresults(state_cppad, targetWeight, rep_cppad);
-
-        std::cout << "automatic differentiation (cppad): " << timer.elapsed()
-                  << "s\tfunction value: " << state_cppad.f
-                  << "\tfunction evaluations: " << rep_cppad.nfev
-                  << "\ttermination: " << rep_cppad.terminationtype << std::endl;
     }
 
     {
