@@ -1,11 +1,7 @@
 #include <stdio.h>
-#include <windows.h>
-#include "LinAlg.h"
+#include <linalg.h>
+#include <boost/timer.hpp>
 
-double counter()
-{
-    return 0.001*GetTickCount();
-}
 
 int main()
 {
@@ -34,7 +30,7 @@ int main()
     // We call function with "smp_" prefix, which means that ALGLIB
     // will try to execute it in parallel manner whenever it is possible.
     flops = 2*pow((double)n, (double)3);
-    timeneeded = counter();
+    boost::timer timer;
     alglib::smp_rmatrixgemm(
         n, n, n,
         1.0,
@@ -42,7 +38,7 @@ int main()
         b, 0, 0, 1,
         0.0,
         c, 0, 0);
-    timeneeded = counter()-timeneeded;
+    timeneeded = timer.elapsed();
     
     // Evaluate performance
     printf("Performance is %.1f GFLOPS\n", (double)(1.0E-9*flops/timeneeded));
