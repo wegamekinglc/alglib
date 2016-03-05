@@ -1,7 +1,3 @@
-//
-// Created by root on 16-3-5.
-//
-
 #include "ParameterReader.hpp"
 
 boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>

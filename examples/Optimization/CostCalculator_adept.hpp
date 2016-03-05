@@ -1,14 +1,9 @@
-//
-// Created by root on 16-3-5.
-//
-
 #ifndef ALGLIB_COSTCALCULATOR_ADEPT_HPP
 #define ALGLIB_COSTCALCULATOR_ADEPT_HPP
 
 #include "types.hpp"
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/blas.hpp>
 #include <adept.h>
 
 

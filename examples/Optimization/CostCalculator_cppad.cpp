@@ -1,7 +1,3 @@
-//
-// Created by root on 16-3-5.
-//
-
 #include "CostCalculator_cppad.hpp"
 
 using CppAD::AD;

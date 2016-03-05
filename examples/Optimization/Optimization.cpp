@@ -1,19 +1,66 @@
-#include <iostream>
+/*
+ * This is an example to show the performance of different methods with respect to the following ..
+ *
+ * Single period optimal portfolio allocation problem:
+ *
+ * C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
+ *
+ * subjected to:
+ *
+ * 0 < w_i < 1 for each i,
+ * \sum_i w_i = 1
+ *
+ * where:
+ *
+ * w : the target portfolio allocation vector of different securities.
+ * C : the covariance matrix of the whole securities universe.
+ * T : trading cost vector.
+ * R : the expected return vector.
+ * \bar w : current portfolio allocation vector.
+ *
+ * for this problem we use single optimization method `minbleic` which are implemented in Alglib combined with
+ * the following 4 ways to calculate cost function or its corresponding gradient:
+ *
+ * 1. `calculate_fd`
+ *
+ * Only cost function are provided to optimizer. The gradient are calculated by finite difference method which are handled by the optimizer
+ * internally.
+ *
+ * 2. `calculate_analytic`
+ *
+ * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes.
+ *
+ * 3. `calculate_cppad`
+ *
+ * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool CppAD,
+ *
+ * 4. `calculate_adept`
+ *
+ * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool Adept,
+ */
 
-#include <boost/timer.hpp>
-#include <optimization.h>
 #include "ParameterReader.hpp"
 #include "CostCalculator_fd.hpp"
 #include "CostCalculator_analytic.hpp"
 #include "CostCalculator_cppad.hpp"
 #include "CostCalculator_adept.hpp"
+#include <boost/timer.hpp>
+#include <optimization.h>
 
 
 int main(int argc, char **argv)
 {
 
+    /*
+     * Read all the parameters from the file
+     *
+     * varMatrix: co-variance matrix of the securities.
+     * tradingCost: trading costs vector of the securities.
+     * expectReturn: expect returns vector of the securities.
+     * currentWeight: current portfolio allocation vector of the securities.
+     */
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
-            parameters = parameterReader("/home/wegamekinglc/Documents/github/coding/alglib/data/20160303_1000.csv");
+            parameters = parameterReader("/home/wegamekinglc/Documents/github/coding/alglib/data/20160303_100.csv");
 
     real_2d_array varMatrix = parameters.get<0>();
     real_1d_array tradingCost = parameters.get<1>();
@@ -22,13 +69,14 @@ int main(int argc, char **argv)
 
     int variableNumber = varMatrix.rows();
 
-    // start point
-    real_1d_array startWeight;
-    startWeight.setlength(variableNumber);
-    for (int i = 0; i != variableNumber; ++i)
-        startWeight[i] = 1.0 / variableNumber;
+    /*
+     * Portfolio construction constraints
+     *
+     * 1. Bounded constraint: 0 < x_i < 1.0 for each i stands for one particular security.
+     * 2. Linear constraint: \sum_i x_i = 1.0, no cash out and no leverage.
+     */
 
-    // bounded constraints 0.0 < x_i < 1.0
+    // bounded constraints
     real_1d_array bndl;
     bndl.setlength(variableNumber);
     for (int i = 0; i != variableNumber; ++i)
@@ -39,7 +87,7 @@ int main(int argc, char **argv)
     for (int i = 0; i != variableNumber; ++i)
         bndu[i] = 1.0;
 
-    // linear constraints \sum_i x_i = 1.0
+    // linear constraints
     real_2d_array conMatrix;
     integer_1d_array condType = "[0]";
     conMatrix.setlength(1, variableNumber + 1);
@@ -52,6 +100,13 @@ int main(int argc, char **argv)
     double epsf = 0;
     double epsx = 0;
     alglib::ae_int_t maxits = 0;
+
+    // start point
+    real_1d_array startWeight;
+    startWeight.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        startWeight[i] = 1.0 / variableNumber;
+
 
     boost::timer timer;
 
@@ -95,7 +150,7 @@ int main(int argc, char **argv)
         alglib::minbleicoptimize(state_cppad, calculate_cppad, NULL, &costCalc);
         alglib::minbleicresults(state_cppad, targetWeight, rep_cppad);
 
-        std::cout << "adjoint differentiation (cppad): " << timer.elapsed()
+        std::cout << "automatic differentiation (cppad): " << timer.elapsed()
                   << "s\tfunction value: " << state_cppad.f
                   << "\tfunction evaluations: " << rep_cppad.nfev
                   << "\ttermination: " << rep_cppad.terminationtype << std::endl;
@@ -117,7 +172,7 @@ int main(int argc, char **argv)
         alglib::minbleicoptimize(state_adept, calculate_adept, NULL, &costCalc);
         alglib::minbleicresults(state_adept, targetWeight, rep_adept);
 
-        std::cout << "adjoint differentiation (adept): " << timer.elapsed()
+        std::cout << "automatic differentiation (adept): " << timer.elapsed()
                   << "s\tfunction value: " << state_adept.f
                   << "\tfunction evaluations: " << rep_adept.nfev
                   << "\ttermination: " << rep_adept.terminationtype << std::endl;

@@ -1,10 +1,4 @@
-//
-// Created by root on 16-3-5.
-//
-
 #include "CostCalculator_adept.hpp"
-#include <adept.h>
-#include <boost/numeric/ublas/functional.hpp>
 
 CostCalculator_adept::CostCalculator_adept(const real_1d_array expectReturn,
                      const real_2d_array& varMatrix,

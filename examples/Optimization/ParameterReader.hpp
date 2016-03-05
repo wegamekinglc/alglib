@@ -1,7 +1,3 @@
-//
-// Created by root on 16-3-5.
-//
-
 #ifndef ALGLIB_PARAMETERREADER_HPP
 #define ALGLIB_PARAMETERREADER_HPP
 

@@ -1,7 +1,3 @@
-//
-// Created by root on 16-3-5.
-//
-
 #include "CostCalculator_analytic.hpp"
 #include <linalg.h>
 

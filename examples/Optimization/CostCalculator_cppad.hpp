@@ -1,7 +1,3 @@
-//
-// Created by root on 16-3-5.
-//
-
 #ifndef ALGLIB_COSTCALCULATOR_CPPAD_HPP
 #define ALGLIB_COSTCALCULATOR_CPPAD_HPP
 
