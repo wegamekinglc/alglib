@@ -1,10 +1,18 @@
 #include "ParameterReader.hpp"
+#include <iostream>
 
 boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
         parameterReader(const std::string& filePath)
 {
     real_2d_array varMatrix;
-    alglib::read_csv(filePath.c_str(), ',', 0, varMatrix);
+    try {
+        alglib::read_csv(filePath.c_str(), ',', 0, varMatrix);
+    }
+    catch (alglib::ap_error& e) {
+        std::cout << e.msg << ": " << filePath << std::endl;
+        throw e;
+    }
+    
 
     int variableNumber = varMatrix.rows();
 

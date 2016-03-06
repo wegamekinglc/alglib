@@ -41,6 +41,7 @@
 #include "CostCalculator_adept.hpp"
 #include <boost/timer.hpp>
 #include <optimization.h>
+#include <iomanip>
 
 
 int main(int argc, char **argv)
@@ -54,8 +55,17 @@ int main(int argc, char **argv)
      * expectReturn: expect returns vector of the securities.
      * currentWeight: current portfolio allocation vector of the securities.
      */
+
+    int problemSize;
+    std::cout << "Please input problem size (e.g. 100): ";
+    std::cin >> problemSize;
+
+    char buffer[100];
+    sprintf(buffer, "d:/20160303_%d.csv", problemSize);
+    std::string filaPath(buffer);
+
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
-            parameters = parameterReader("d:/20160303_500.csv");
+            parameters = parameterReader(filaPath);
 
     real_2d_array varMatrix = parameters.get<0>();
     real_1d_array tradingCost = parameters.get<1>();
@@ -102,13 +112,20 @@ int main(int argc, char **argv)
     for (int i = 0; i != variableNumber; ++i)
         startWeight[i] = 1.0 / variableNumber;
 
+    //
+    int widths[] = { 20, 14, 14, 14 };
+    std::cout << std::setw(widths[0]) << std::left << "Method"
+        << std::setw(widths[1]) << std::left << "Time(s)"
+        << std::setw(widths[2]) << std::left << "f(x)"
+        << std::setw(widths[3]) << std::left << "FuncEval"
+        << std::endl;
+
 
     boost::timer timer;
 
     {
         CostCalculator_analytic costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
-        timer.restart();
         alglib::minbleicstate state_analytic;
         alglib::minbleicreport rep_analytic;
 
@@ -117,21 +134,23 @@ int main(int argc, char **argv)
         alglib::minbleicsetbc(state_analytic, bndl, bndu);
         alglib::minbleicsetcond(state_analytic, epsg, epsf, epsx, maxits);
 
+        timer.restart();
         real_1d_array targetWeight;
 
         alglib::minbleicoptimize(state_analytic, calculate_analytic, NULL, &costCalc);
         alglib::minbleicresults(state_analytic, targetWeight, rep_analytic);
 
-        std::cout << "analytic method : " << timer.elapsed()
-                  << "s\tfunction value: " << state_analytic.f
-                  << "\tfunction evaluations: " << rep_analytic.nfev
-                  << "\ttermination: " << rep_analytic.terminationtype << std::endl;
+        std::cout << std::setw(widths[0]) << std::left << "Analytic"
+            << std::fixed
+            << std::setw(widths[1]) << std::left << timer.elapsed()
+            << std::setw(widths[2]) << std::left << state_analytic.f
+            << std::setw(widths[3]) << std::left << rep_analytic.nfev
+            << std::endl;
     }
 
     {
         CostCalculator_adept costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
-        timer.restart();
         alglib::minbleicstate state_adept;
         alglib::minbleicreport rep_adept;
 
@@ -140,20 +159,23 @@ int main(int argc, char **argv)
         alglib::minbleicsetbc(state_adept, bndl, bndu);
         alglib::minbleicsetcond(state_adept, epsg, epsf, epsx, maxits);
 
+        timer.restart();
         real_1d_array targetWeight;
+
         alglib::minbleicoptimize(state_adept, calculate_adept, NULL, &costCalc);
         alglib::minbleicresults(state_adept, targetWeight, rep_adept);
 
-        std::cout << "automatic differentiation (adept): " << timer.elapsed()
-                  << "s\tfunction value: " << state_adept.f
-                  << "\tfunction evaluations: " << rep_adept.nfev
-                  << "\ttermination: " << rep_adept.terminationtype << std::endl;
+        std::cout << std::setw(widths[0]) << std::left << "AD (adept)"
+            << std::fixed
+            << std::setw(widths[1]) << std::left << timer.elapsed()
+            << std::setw(widths[2]) << std::left << state_adept.f
+            << std::setw(widths[3]) << std::left << rep_adept.nfev
+            << std::endl;
     }
 
     {
         CostCalculator_fd costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
-        timer.restart();
         double diffstep = 1.0e-6;
         alglib::minbleicstate state_fd;
         alglib::minbleicreport rep_fd;
@@ -163,15 +185,18 @@ int main(int argc, char **argv)
         alglib::minbleicsetbc(state_fd, bndl, bndu);
         alglib::minbleicsetcond(state_fd, epsg, epsf, epsx, maxits);
 
-        alglib::minbleicoptimize(state_fd, calculate_fd, NULL, &costCalc);
-
+        timer.restart();
         real_1d_array targetWeight;
+
+        alglib::minbleicoptimize(state_fd, calculate_fd, NULL, &costCalc);
         alglib::minbleicresults(state_fd, targetWeight, rep_fd);
 
-        std::cout << "finite difference: " << timer.elapsed()
-                  << "s\tfunction value: " << state_fd.f
-                  << "\tfunction evaluations: " << rep_fd.nfev
-                  << "\ttermination: " << rep_fd.terminationtype << std::endl;
+        std::cout << std::setw(widths[0]) << std::left << "Finite Difference"
+            << std::fixed
+            << std::setw(widths[1]) << std::left << timer.elapsed()
+            << std::setw(widths[2]) << std::left << state_fd.f
+            << std::setw(widths[3]) << std::left << rep_fd.nfev
+            << std::endl;
     }
 
     return 0;
