@@ -6,6 +6,6 @@
 #include <string>
 
 boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
-        parameterReader(const std::string& filePath);
+        parameterReader(const std::string& filePath, int size);
 
 #endif //ALGLIB_PARAMETERREADER_HPP

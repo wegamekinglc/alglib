@@ -36,47 +36,13 @@
  */
 
 #include "ParameterReader.hpp"
+#include "utilities.hpp"
 #include "CostCalculator_fd.hpp"
 #include "CostCalculator_analytic.hpp"
 #include "CostCalculator_adept.hpp"
 #include <boost/timer.hpp>
 #include <optimization.h>
 #include <iomanip>
-
-
-double min(const real_1d_array& array)
-{
-    double minimum = 1e308;
-    for(int i=0;i!=array.length();++i)
-    {
-        if(array[i] < minimum)
-            minimum = array[i];
-    }
-    return minimum;
-}
-
-
-double max(const real_1d_array& array)
-{
-    double maximum = 1e-308;
-    for(int i=0;i!=array.length();++i)
-    {
-        if(array[i] > maximum)
-            maximum = array[i];
-    }
-    return maximum;
-}
-
-
-double sum(const real_1d_array& array)
-{
-    double sumValue = 0.0;
-    for(int i=0;i!=array.length();++i)
-    {
-        sumValue += array[i];
-    }
-    return sumValue;
-}
 
 
 int main(int argc, char **argv)
@@ -96,11 +62,11 @@ int main(int argc, char **argv)
     std::cin >> problemSize;
 
     char buffer[100];
-    sprintf(buffer, "d:/20160303_%d.csv", problemSize);
+    sprintf(buffer, "/home/wegamekinglc/Documents/github/coding/alglib/data/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
-            parameters = parameterReader(filaPath);
+            parameters = parameterReader(filaPath, problemSize);
 
     real_2d_array varMatrix = parameters.get<0>();
     real_1d_array tradingCost = parameters.get<1>();
