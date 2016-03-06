@@ -44,6 +44,41 @@
 #include <iomanip>
 
 
+double min(const real_1d_array& array)
+{
+    double minimum = 1e308;
+    for(int i=0;i!=array.length();++i)
+    {
+        if(array[i] < minimum)
+            minimum = array[i];
+    }
+    return minimum;
+}
+
+
+double max(const real_1d_array& array)
+{
+    double maximum = 1e-308;
+    for(int i=0;i!=array.length();++i)
+    {
+        if(array[i] > maximum)
+            maximum = array[i];
+    }
+    return maximum;
+}
+
+
+double sum(const real_1d_array& array)
+{
+    double sumValue = 0.0;
+    for(int i=0;i!=array.length();++i)
+    {
+        sumValue += array[i];
+    }
+    return sumValue;
+}
+
+
 int main(int argc, char **argv)
 {
 
@@ -61,7 +96,7 @@ int main(int argc, char **argv)
     std::cin >> problemSize;
 
     char buffer[100];
-    sprintf(buffer, "d:/20160303_%d.csv", problemSize);
+    sprintf(buffer, "/home/wegamekinglc/Documents/github/coding/alglib/data/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
@@ -101,9 +136,9 @@ int main(int argc, char **argv)
     conMatrix[0][variableNumber] = 1.0;
 
     // stop condition
-    double epsg = 1e-6;
-    double epsf = 0;
-    double epsx = 0;
+    double epsg = 1e-8;
+    double epsf = 1e-8;
+    double epsx = 1e-8;
     alglib::ae_int_t maxits = 0;
 
     // start point
@@ -113,11 +148,14 @@ int main(int argc, char **argv)
         startWeight[i] = 1.0 / variableNumber;
 
     //
-    int widths[] = { 20, 14, 14, 14 };
+    int widths[] = { 20, 14, 14, 14, 14, 14, 14 };
     std::cout << std::setw(widths[0]) << std::left << "Method"
         << std::setw(widths[1]) << std::left << "Time(s)"
         << std::setw(widths[2]) << std::left << "f(x)"
         << std::setw(widths[3]) << std::left << "FuncEval"
+        << std::setw(widths[4]) << std::left << "min(x_i)"
+        << std::setw(widths[5]) << std::left << "max(x_i)"
+        << std::setw(widths[6]) << std::left << "sum(x_i)"
         << std::endl;
 
 
@@ -140,12 +178,20 @@ int main(int argc, char **argv)
         alglib::minbleicoptimize(state_analytic, calculate_analytic, NULL, &costCalc);
         alglib::minbleicresults(state_analytic, targetWeight, rep_analytic);
 
+        double func;
+        real_1d_array grad;
+        grad.setlength(variableNumber);
+        calculate_analytic(targetWeight, func, grad, &costCalc);
+
         std::cout << std::setw(widths[0]) << std::left << "Analytic"
-            << std::fixed
-            << std::setw(widths[1]) << std::left << timer.elapsed()
-            << std::setw(widths[2]) << std::left << state_analytic.f
-            << std::setw(widths[3]) << std::left << rep_analytic.nfev
-            << std::endl;
+                << std::fixed << std::setprecision(8)
+                << std::setw(widths[1]) << std::left << timer.elapsed()
+                << std::setw(widths[2]) << std::left << state_analytic.f
+                << std::setw(widths[3]) << std::left << rep_analytic.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
+                << std::endl;
     }
 
     {
@@ -166,17 +212,20 @@ int main(int argc, char **argv)
         alglib::minbleicresults(state_adept, targetWeight, rep_adept);
 
         std::cout << std::setw(widths[0]) << std::left << "AD (adept)"
-            << std::fixed
-            << std::setw(widths[1]) << std::left << timer.elapsed()
-            << std::setw(widths[2]) << std::left << state_adept.f
-            << std::setw(widths[3]) << std::left << rep_adept.nfev
-            << std::endl;
+                << std::fixed
+                << std::setw(widths[1]) << std::left << timer.elapsed()
+                << std::setw(widths[2]) << std::left << state_adept.f
+                << std::setw(widths[3]) << std::left << rep_adept.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
+                << std::endl;
     }
 
     {
         CostCalculator_fd costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
-        double diffstep = 1.0e-6;
+        double diffstep = 1.0e-8;
         alglib::minbleicstate state_fd;
         alglib::minbleicreport rep_fd;
 
@@ -192,11 +241,14 @@ int main(int argc, char **argv)
         alglib::minbleicresults(state_fd, targetWeight, rep_fd);
 
         std::cout << std::setw(widths[0]) << std::left << "Finite Difference"
-            << std::fixed
-            << std::setw(widths[1]) << std::left << timer.elapsed()
-            << std::setw(widths[2]) << std::left << state_fd.f
-            << std::setw(widths[3]) << std::left << rep_fd.nfev
-            << std::endl;
+                << std::fixed
+                << std::setw(widths[1]) << std::left << timer.elapsed()
+                << std::setw(widths[2]) << std::left << state_fd.f
+                << std::setw(widths[3]) << std::left << rep_fd.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
+                << std::endl;
     }
 
     return 0;
