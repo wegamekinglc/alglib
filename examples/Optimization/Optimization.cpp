@@ -62,11 +62,11 @@ int main(int argc, char **argv)
     std::cin >> problemSize;
 
     char buffer[100];
-    sprintf(buffer, "/home/wegamekinglc/Documents/github/coding/alglib/data/20160303_%d.csv", problemSize);
+    sprintf(buffer, "d:/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
-            parameters = parameterReader(filaPath, problemSize);
+            parameters = parameterReader(filaPath);
 
     real_2d_array varMatrix = parameters.get<0>();
     real_1d_array tradingCost = parameters.get<1>();

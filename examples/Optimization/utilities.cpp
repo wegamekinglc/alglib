@@ -1,28 +1,26 @@
 #include "utilities.hpp"
 
-real_2d_array readVarianceMatrix(const std::string& path, int length) {
+real_2d_array readVarianceMatrix(const std::string& path) {
     std::ifstream in(path.c_str());
     typedef boost::tokenizer<boost::escaped_list_separator<char> > Tokenizer;
     std::vector<std::string> vec;
     std::string line;
 
-    real_2d_array res;
-    res.setlength(length, length);
+    std::vector<double> allData;
 
-    size_t count = 0;
+    int rows = 0;
     while (std::getline(in, line)) {
         Tokenizer tok(line);
         vec.assign(tok.begin(), tok.end());
-        vec.resize(length);
-
         for (size_t i = 0; i != vec.size(); ++i)
-            res[count][i] = boost::lexical_cast<double>(vec[i]);
-
-        ++count;
-
-        if (count == length)
-            break;
+            allData.push_back(boost::lexical_cast<double>(vec[i]));
+        rows += 1;
     }
+
+    assert(allData.size() / rows == rows);
+
+    real_2d_array res;
+    res.setcontent(rows, rows, &allData[0]);
 
     return res;
 }

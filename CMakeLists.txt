@@ -13,7 +13,9 @@ add_definitions(-DAE_CPU=AE_INTEL)
 set(BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
 set(EXECUTABLE_OUTPUT_PATH ${BUILD_DIR})
 set(LIBRARY_OUTPUT_PATH ${BUILD_DIR})
-set(Boost_INCLUDE_DIR YOUR_BOOST_LIBRARY_DIR_HERE)
+
+# set your own boost path here
+set(Boost_INCLUDE_DIR d:/dev/boost_1_60_0)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/alglib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Adept)

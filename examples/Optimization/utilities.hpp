@@ -6,7 +6,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 
-real_2d_array readVarianceMatrix(const std::string& path, int length);
+real_2d_array readVarianceMatrix(const std::string& path);
 
 double min(const real_1d_array& array);
 

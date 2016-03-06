@@ -10,13 +10,13 @@ b = [];
 nonlcon = [];
 
 % optimize without gradient
-tic;
 options = optimoptions('fmincon','MaxFunEvals',300000);
+tic;
 [x, fval, exitflag, output] = fmincon(@calc.calculation, currentWeight, A, b, Aeq, beq, lb, ub, nonlcon, options);
 toc;
 
 % optimize  with gradient
-tic;
 options = optimoptions('fmincon','MaxFunEvals',300000, 'GradObj','on');
+tic;
 [x_grad, fval_grad, exitflag_grad, output_grad] = fmincon(@calc.calculationWithGrad, currentWeight, A, b, Aeq, beq, lb, ub, nonlcon, options);
 toc;
