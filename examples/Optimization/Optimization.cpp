@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     std::cin >> problemSize;
 
     char buffer[100];
-    sprintf(buffer, "/home/wegamekinglc/Documents/github/coding/alglib/data/20160303_%d.csv", problemSize);
+    sprintf(buffer, "d:/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
@@ -178,13 +178,8 @@ int main(int argc, char **argv)
         alglib::minbleicoptimize(state_analytic, calculate_analytic, NULL, &costCalc);
         alglib::minbleicresults(state_analytic, targetWeight, rep_analytic);
 
-        double func;
-        real_1d_array grad;
-        grad.setlength(variableNumber);
-        calculate_analytic(targetWeight, func, grad, &costCalc);
-
         std::cout << std::setw(widths[0]) << std::left << "Analytic"
-                << std::fixed << std::setprecision(8)
+                << std::fixed << std::setprecision(6)
                 << std::setw(widths[1]) << std::left << timer.elapsed()
                 << std::setw(widths[2]) << std::left << state_analytic.f
                 << std::setw(widths[3]) << std::left << rep_analytic.nfev

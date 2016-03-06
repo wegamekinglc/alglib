@@ -52,6 +52,7 @@ void CostCalculator_adept::calculateCost(const real_1d_array& xWeight, double& f
         else
             totalCost += weightChanges[i] * tradingCost_[i];
     }
+
     totalCost.set_gradient(1.0);
     stack_.compute_adjoint();
     adept::get_gradients(&realX[0], variableNumber_, &grad[0]);
