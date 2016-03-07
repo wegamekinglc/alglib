@@ -38,12 +38,13 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
     
     * 运行 ``Optimization`` 项目，输入资产数目之后，会有类似如下的运行结果：
 
-
-    Please input problem size (e.g. 100): 100
-    Method              Time(s)       f(x)          FuncEval      min(x_i)      max(x_i)      sum(x_i)
-    Analytic            0.001000      -0.131214     121           0.000000      0.651510      1.000000
-    AD (adept)          0.025000      -0.131214     121           0.000000      0.651510      1.000000
-    Finite Difference   0.178000      -0.131214     34281         0.000000      0.651510      1.000000
+    ```cplusplus
+        Please input problem size (e.g. 100): 100
+        Method              Time(s)       f(x)          FuncEval      min(x_i)      max(x_i)      sum(x_i)
+        Analytic            0.001000      -0.131214     121           0.000000      0.651510      1.000000
+        AD (adept)          0.025000      -0.131214     121           0.000000      0.651510      1.000000
+        Finite Difference   0.178000      -0.131214     34281         0.000000      0.651510      1.000000
+    ```
 
 2. ``Matlab``
 
