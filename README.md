@@ -31,13 +31,13 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
 
 1. ``Alglib``
 
-    * 进入根目录下 ``build`` 文件夹;
+   * 进入根目录下 ``build`` 文件夹;
 
-    * 使用Visual Studio打开 ``alglib.sln`` 文件;
+   * 使用Visual Studio打开 ``alglib.sln`` 文件;
     
-    * 点选 ``生成`` -> ``生成解决方案``;
+   * 点选 ``生成`` -> ``生成解决方案``;
     
-    * 运行 ``Optimization`` 项目，输入资产数目之后，会有类似如下的运行结果：
+   * 运行 ``Optimization`` 项目，输入资产数目之后，会有类似如下的运行结果：
 
         Please input problem size (e.g. 100): 100
         Method              Time(s)       f(x)          FuncEval      min(x_i)      max(x_i)      sum(x_i)
@@ -47,6 +47,6 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
 
 2. ``Matlab``
 
-    * 进入根目录下``matlab``文件夹；
+   * 进入根目录下``matlab``文件夹；
     
-    * 运行 ``doOptimization.m`` 文件。
+   * 运行 ``doOptimization.m`` 文件。
