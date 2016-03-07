@@ -1,8 +1,7 @@
-#ifndef ALGLIB_OPTIMIZATION_TYPES_HPP
-#define ALGLIB_OPTIMIZATION_TYPES_HPP
+#ifndef ALGLIB_OPTIMIZER_TYPES_HPP
+#define ALGLIB_OPTIMIZER_TYPES_HPP
 
 #include <ap.h>
-
 
 using alglib::real_1d_array;
 using alglib::real_2d_array;

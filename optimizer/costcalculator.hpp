@@ -1,12 +1,12 @@
-#ifndef ALGLIB_OPTIMIZATION_COSTCALCULATOR_ANALYTIC_HPP
-#define ALGLIB_OPTIMIZATION_COSTCALCULATOR_ANALYTIC_HPP
+#ifndef ALGLIB_OPTIMIZER_COSTCALCULATOR_ANALYTIC_HPP
+#define ALGLIB_OPTIMIZER_COSTCALCULATOR_ANALYTIC_HPP
 
-#include <assert.h>
 #include "types.hpp"
 
-class CostCalculator_analytic {
+class CostCalculator
+{
     public:
-        CostCalculator_analytic(const real_1d_array expectReturn,
+    CostCalculator(const real_1d_array expectReturn,
             const real_2d_array& varMatrix,
             const real_1d_array& tradingCost,
             const real_1d_array& currentWeight);
@@ -22,6 +22,6 @@ class CostCalculator_analytic {
 };
 
 
-void calculate_analytic (const real_1d_array& xWeight, double& func, real_1d_array& grad, void *ptr);
+void calculate(const real_1d_array& xWeight, double& func, real_1d_array& grad, void *ptr);
 
 #endif
