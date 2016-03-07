@@ -1,7 +1,14 @@
 #include "utilities.hpp"
+#include <iostream>
 
 real_2d_array readVarianceMatrix(const std::string& path) {
     std::ifstream in(path.c_str());
+
+    if (!in.is_open())
+    {
+        throw std::runtime_error("No file: " + path);
+    }
+
     typedef boost::tokenizer<boost::escaped_list_separator<char> > Tokenizer;
     std::vector<std::string> vec;
     std::string line;
@@ -17,7 +24,10 @@ real_2d_array readVarianceMatrix(const std::string& path) {
         rows += 1;
     }
 
-    assert(allData.size() / rows == rows);
+    if(allData.size() / rows != rows) 
+    {
+        throw std::runtime_error("Variance matrix is not a rectangle matrix");
+    }
 
     real_2d_array res;
     res.setcontent(rows, rows, &allData[0]);
