@@ -1,5 +1,6 @@
 #include "ParameterReader.hpp"
 #include <iostream>
+#include <stdexcept>
 
 extern "C" void portfolioOptimizer(int size,
                                    double* covMatrix,
