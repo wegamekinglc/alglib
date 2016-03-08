@@ -25,7 +25,7 @@ function [cost, target] = portfolioOptimizer(covMatrix, expRet, tCost, weight, l
     [wm, wn] = size(weight);
     assert((wm==m && wn==1) || (wm==1 && wn==m))
     
-    % constraints settings
+    % bounded constraints settings
     if nargin <= 4
         bndl = libpointer('doublePtr');
         bndu = libpointer('doublePtr');
@@ -38,6 +38,7 @@ function [cost, target] = portfolioOptimizer(covMatrix, expRet, tCost, weight, l
         bndu = libpointer('doublePtr', upperBound); 
     end
     
+    % linear equality/inequality constraints
     if nargin <= 6
         lc = libpointer('doublePtr');
         lct = libpointer('int32Ptr');
@@ -51,7 +52,7 @@ function [cost, target] = portfolioOptimizer(covMatrix, expRet, tCost, weight, l
         lct = libpointer('int32Ptr', linearCondType);
     end
     
-    
+    % transfrom matlab data type to corresponding c pointer type
     var =  libpointer('doublePtr', covMatrix);
     r = libpointer('doublePtr', expRet);
     t = libpointer('doublePtr', tCost);

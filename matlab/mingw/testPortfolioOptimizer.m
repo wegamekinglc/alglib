@@ -1,5 +1,5 @@
 % problem size
-m = 1000;
+m = 100;
 filePath = strcat('../../data/20160303_', int2str(m), '.csv');
 
 [var, t, r, w] = paramaterReader(filePath);
