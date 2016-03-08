@@ -1,7 +1,18 @@
 #include "ParameterReader.hpp"
 #include <iostream>
 
-extern "C" void portfolioOptimizer(int size, double* covMatrix, double* expectedReturn, double* tradingCost, double* currentWeight, double* targetWeight, double* cost);
+extern "C" void portfolioOptimizer(int size,
+                                   double* covMatrix,
+                                   double* expectedReturn,
+                                   double* tradingCost,
+                                   double* currentWeight,
+                                   double* lowerBound,
+                                   double* upperBound,
+                                   int lcNumber,
+                                   double* linearCond,
+                                   int* linearCondType,
+                                   double* targetWeight,
+                                   double* cost);
 
 int main()
 {
@@ -12,7 +23,7 @@ int main()
     char buffer[100];
 
     // Please set the data file path here
-    sprintf(buffer, "../../../data/20160303_%d.csv", problemSize);
+    sprintf(buffer, "../../data/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
@@ -51,7 +62,26 @@ int main()
     double* res= new double[size];
     double* cost = new double[1];
 
-    portfolioOptimizer(size, cov, expect, t, w, res, cost);
+    double* bndl = new double[size];
+    double* bndr = new double[size];
+
+    for(int i=0; i != size; ++i)
+    {
+        bndl[i] = 0.0;
+        bndr[i] = 1.0;
+    }
+
+    double* linearCond = new double[size + 1];
+    int* linearCondType = new int[1];
+
+    for(int i=0; i != size + 1; ++i)
+    {
+        linearCond[i] = 1.0;
+    }
+
+    linearCondType[0] = 0;
+
+    portfolioOptimizer(size, cov, expect, t, w, bndl, bndr, 1, linearCond, linearCondType, res, cost);
 
     std::cout << cost[0] << std::endl;
 
@@ -61,6 +91,10 @@ int main()
     delete w;
     delete res;
     delete cost;
+    delete bndl;
+    delete bndr;
+    delete linearCond;
+    delete linearCondType;
 
     return 0;
 }

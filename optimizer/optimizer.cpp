@@ -6,7 +6,18 @@
 
 using namespace alglib;
 
-void portfolioOptimizer(int size, double* covMatrix, double* expectedReturn, double* tradingCost, double* currentWeight, double* targetWeight, double* cost)
+void portfolioOptimizer(int size,
+                        double* covMatrix,
+                        double* expectedReturn,
+                        double* tradingCost,
+                        double* currentWeight,
+                        double* lowerBound,
+                        double* upperBound,
+                        int lcNumber,
+                        double* linearCond,
+                        int* linearCondType,
+                        double* targetWeight,
+                        double* cost)
 {
     real_2d_array cov;
     cov.setcontent(size, size, &covMatrix[0]);
@@ -20,25 +31,6 @@ void portfolioOptimizer(int size, double* covMatrix, double* expectedReturn, dou
     real_1d_array w;
     w.setcontent(size, &currentWeight[0]);
 
-    // bounded constraints
-    real_1d_array bndl;
-    bndl.setlength(size);
-    for (int i = 0; i != size; ++i)
-        bndl[i] = 0.0;
-
-    real_1d_array bndu;
-    bndu.setlength(size);
-    for (int i = 0; i != size; ++i)
-        bndu[i] = 1.0;
-
-    // linear constraints
-    real_2d_array conMatrix;
-    integer_1d_array condType = "[0]";
-    conMatrix.setlength(1, size + 1);
-    for (int i = 0; i != size; ++i)
-        conMatrix[0][i] = 1.0;
-    conMatrix[0][size] = 1.0;
-
     double epsg = 1e-8;
     double epsf = 1e-8;
     double epsx = 1e-8;
@@ -50,20 +42,37 @@ void portfolioOptimizer(int size, double* covMatrix, double* expectedReturn, dou
     alglib::minbleicreport rep_analytic;
 
     alglib::minbleiccreate(w, state_analytic);
-    alglib::minbleicsetlc(state_analytic, conMatrix, condType);
-    alglib::minbleicsetbc(state_analytic, bndl, bndu);
+
     alglib::minbleicsetcond(state_analytic, epsg, epsf, epsx, maxits);
 
-    real_1d_array res;
+    // bounded constraints
+    real_1d_array bndl;
+    real_1d_array bndu;
 
+    if(lowerBound != NULL and upperBound != NULL)
+    {
+        bndl.setcontent(size, &lowerBound[0]);
+        bndu.setcontent(size, &upperBound[0]);
+        alglib::minbleicsetbc(state_analytic, bndl, bndu);
+    }
+
+    // linear constraints
+    real_2d_array conMatrix;
+    integer_1d_array condType;
+    if(linearCond != NULL and linearCondType != NULL)
+    {
+        conMatrix.setcontent(lcNumber, size + 1, &linearCond[0]);
+        condType.setlength(lcNumber);
+        for(int i=0; i!=lcNumber; ++i)
+            condType[i] = linearCondType[i];
+        alglib::minbleicsetlc(state_analytic, conMatrix, condType);
+    }
+
+    real_1d_array res;
     alglib::minbleicoptimize(state_analytic, calculate, NULL, &calc);
     alglib::minbleicresults(state_analytic, res, rep_analytic);
 
     alglib::vmove(&targetWeight[0], &res[0], size);
-
-    real_1d_array grad;
-    grad.setlength(size);
-
     cost[0] = state_analytic.f;
 }
 
