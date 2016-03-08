@@ -1,3 +1,4 @@
 add_subdirectory(HelloWorld)
 add_subdirectory(Optimization)
 add_subdirectory(optimizerTest)
+add_subdirectory(testEigen)

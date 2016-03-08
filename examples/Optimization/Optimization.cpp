@@ -19,7 +19,7 @@
  * \bar w : current portfolio allocation vector.
  *
  * for this problem we use single optimization method `minbleic` which are implemented in Alglib combined with
- * the following 3 ways to calculate cost function or its corresponding gradient:
+ * the following 4 ways to calculate cost function or its corresponding gradient:
  *
  * 1. `calculate_fd`
  *
@@ -30,7 +30,11 @@
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes.
  *
- * 3. `calculate_adept`
+ * 3. `calculate_cppad`
+ *
+ * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool CppAD,
+ *
+ * 4. `calculate_adept`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool Adept,
  */
@@ -40,6 +44,7 @@
 #include "CostCalculator_fd.hpp"
 #include "CostCalculator_analytic.hpp"
 #include "CostCalculator_adept.hpp"
+#include "CostCalculator_cppad.hpp"
 #include <boost/timer.hpp>
 #include <optimization.h>
 #include <iomanip>
@@ -189,6 +194,34 @@ int main(int argc, char **argv)
                 << std::setw(widths[1]) << std::left << timer.elapsed()
                 << std::setw(widths[2]) << std::left << state_adept.f
                 << std::setw(widths[3]) << std::left << rep_adept.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
+                << std::endl;
+    }
+
+    {
+        CostCalculator_cppad costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        timer.restart();
+        alglib::minbleicstate state_cppad;
+        alglib::minbleicreport rep_cppad;
+
+        alglib::minbleiccreate(startWeight, state_cppad);
+        alglib::minbleicsetlc(state_cppad, conMatrix, condType);
+        alglib::minbleicsetbc(state_cppad, bndl, bndu);
+        alglib::minbleicsetcond(state_cppad, epsg, epsf, epsx, maxits);
+
+        real_1d_array targetWeight;
+
+        alglib::minbleicoptimize(state_cppad, calculate_cppad, NULL, &costCalc);
+        alglib::minbleicresults(state_cppad, targetWeight, rep_cppad);
+
+        std::cout << std::setw(widths[0]) << std::left << "AD (cppad)"
+                << std::fixed
+                << std::setw(widths[1]) << std::left << timer.elapsed()
+                << std::setw(widths[2]) << std::left << state_cppad.f
+                << std::setw(widths[3]) << std::left << rep_cppad.nfev
                 << std::setw(widths[4]) << std::left << min(targetWeight)
                 << std::setw(widths[5]) << std::left << max(targetWeight)
                 << std::setw(widths[6]) << std::left << sum(targetWeight)
