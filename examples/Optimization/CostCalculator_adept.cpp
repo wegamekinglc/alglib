@@ -36,11 +36,12 @@ void CostCalculator_adept::calculateCost(const real_1d_array& xWeight, double& f
 
     stack_.new_recording();
 
-    adouble totalCost = 0.0;
+    std::vector<adouble> totalCost(1);
+    totalCost[0] = 0.0;
 
-    totalCost -= static_cast<adouble>(boost::numeric::ublas::inner_prod(expectReturn_, realX));
+    totalCost[0] -= static_cast<adouble>(boost::numeric::ublas::inner_prod(expectReturn_, realX));
 
-    totalCost += 0.5 * static_cast<adouble>(boost::numeric::ublas::inner_prod(
+    totalCost[0] += 0.5 * static_cast<adouble>(boost::numeric::ublas::inner_prod(
             boost::numeric::ublas::prod(varMatrix_, realX), realX));
 
     boost::numeric::ublas::vector<adouble> weightChanges = realX - currentWeight_;
@@ -48,15 +49,15 @@ void CostCalculator_adept::calculateCost(const real_1d_array& xWeight, double& f
     // trading cost
     for (int i = 0; i != variableNumber_; ++i) {
         if (weightChanges[i] < 0.)
-            totalCost += -weightChanges[i] * tradingCost_[i];
+            totalCost[0] += -weightChanges[i] * tradingCost_[i];
         else
-            totalCost += weightChanges[i] * tradingCost_[i];
+            totalCost[0] += weightChanges[i] * tradingCost_[i];
     }
 
-    totalCost.set_gradient(1.0);
-    stack_.compute_adjoint();
-    adept::get_gradients(&realX[0], variableNumber_, &grad[0]);
-    func = totalCost.value();
+    stack_.independent(&realX[0], variableNumber_);
+    stack_.dependent(&totalCost[0], 1);
+    stack_.jacobian_reverse(&grad[0]);
+    func = totalCost[0].value();
 }
 
 

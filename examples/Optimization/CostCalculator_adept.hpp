@@ -4,7 +4,7 @@
 #include "types.hpp"
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <adept.h>
+#include "adept.h"
 
 
 class CostCalculator_adept {
