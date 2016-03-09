@@ -1,5 +1,5 @@
 % problem size
-m = 1000;
+m = 2000;
 filePath = strcat('../data/20160303_', int2str(m), '.csv');
 
 [varMatrix, tradingCost, expectedReturn, currentWeight] = paramaterReader(filePath);
