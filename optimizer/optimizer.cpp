@@ -49,7 +49,7 @@ void portfolioOptimizer(int size,
     real_1d_array bndl;
     real_1d_array bndu;
 
-    if(lowerBound != NULL and upperBound != NULL)
+    if(lowerBound != NULL && upperBound != NULL)
     {
         bndl.setcontent(size, &lowerBound[0]);
         bndu.setcontent(size, &upperBound[0]);
@@ -59,7 +59,7 @@ void portfolioOptimizer(int size,
     // linear constraints
     real_2d_array conMatrix;
     integer_1d_array condType;
-    if(linearCond != NULL and linearCondType != NULL)
+    if(linearCond != NULL && linearCondType != NULL)
     {
         conMatrix.setcontent(lcNumber, size + 1, &linearCond[0]);
         condType.setlength(lcNumber);

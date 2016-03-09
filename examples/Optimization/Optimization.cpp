@@ -43,6 +43,7 @@
 #include "utilities.hpp"
 #include "CostCalculator_fd.hpp"
 #include "CostCalculator_analytic.hpp"
+#include "CostCalculator_eigen.hpp"
 #include "CostCalculator_adept.hpp"
 #include "CostCalculator_cppad.hpp"
 #include <boost/timer.hpp>
@@ -131,7 +132,7 @@ int main(int argc, char **argv)
         startWeight[i] = 1.0 / variableNumber;
 
     //
-    int widths[] = { 20, 14, 14, 14, 14, 14, 14 };
+    int widths[] = { 25, 14, 14, 14, 14, 14, 14 };
     std::cout << std::setw(widths[0]) << std::left << "Method"
         << std::setw(widths[1]) << std::left << "Time(s)"
         << std::setw(widths[2]) << std::left << "f(x)"
@@ -145,6 +146,7 @@ int main(int argc, char **argv)
     boost::timer timer;
 
     {
+        timer.restart();
         CostCalculator_analytic costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
         alglib::minbleicstate state_analytic;
@@ -155,13 +157,12 @@ int main(int argc, char **argv)
         alglib::minbleicsetbc(state_analytic, bndl, bndu);
         alglib::minbleicsetcond(state_analytic, epsg, epsf, epsx, maxits);
 
-        timer.restart();
         real_1d_array targetWeight;
 
         alglib::minbleicoptimize(state_analytic, calculate_analytic, NULL, &costCalc);
         alglib::minbleicresults(state_analytic, targetWeight, rep_analytic);
 
-        std::cout << std::setw(widths[0]) << std::left << "Analytic"
+        std::cout << std::setw(widths[0]) << std::left << "Alglib (analytic)"
                 << std::fixed << std::setprecision(6)
                 << std::setw(widths[1]) << std::left << timer.elapsed()
                 << std::setw(widths[2]) << std::left << state_analytic.f
@@ -173,6 +174,35 @@ int main(int argc, char **argv)
     }
 
     {
+        timer.restart();
+        CostCalculator_eigen costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        alglib::minbleicstate state_eigen;
+        alglib::minbleicreport rep_eigen;
+
+        alglib::minbleiccreate(startWeight, state_eigen);
+        alglib::minbleicsetlc(state_eigen, conMatrix, condType);
+        alglib::minbleicsetbc(state_eigen, bndl, bndu);
+        alglib::minbleicsetcond(state_eigen, epsg, epsf, epsx, maxits);
+
+        real_1d_array targetWeight;
+
+        alglib::minbleicoptimize(state_eigen, calculate_eigen, NULL, &costCalc);
+        alglib::minbleicresults(state_eigen, targetWeight, rep_eigen);
+
+        std::cout << std::setw(widths[0]) << std::left << "Eigen (analytic)"
+        << std::fixed << std::setprecision(6)
+        << std::setw(widths[1]) << std::left << timer.elapsed()
+        << std::setw(widths[2]) << std::left << state_eigen.f
+        << std::setw(widths[3]) << std::left << rep_eigen.nfev
+        << std::setw(widths[4]) << std::left << min(targetWeight)
+        << std::setw(widths[5]) << std::left << max(targetWeight)
+        << std::setw(widths[6]) << std::left << sum(targetWeight)
+        << std::endl;
+    }
+
+    {
+        timer.restart();
         CostCalculator_adept costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
         alglib::minbleicstate state_adept;
@@ -183,7 +213,6 @@ int main(int argc, char **argv)
         alglib::minbleicsetbc(state_adept, bndl, bndu);
         alglib::minbleicsetcond(state_adept, epsg, epsf, epsx, maxits);
 
-        timer.restart();
         real_1d_array targetWeight;
 
         alglib::minbleicoptimize(state_adept, calculate_adept, NULL, &costCalc);
@@ -201,9 +230,9 @@ int main(int argc, char **argv)
     }
 
     {
+        timer.restart();
         CostCalculator_cppad costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
-        timer.restart();
         alglib::minbleicstate state_cppad;
         alglib::minbleicreport rep_cppad;
 
@@ -229,6 +258,7 @@ int main(int argc, char **argv)
     }
 
     {
+        timer.restart();
         CostCalculator_fd costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
 
         double diffstep = 1.0e-8;
@@ -240,7 +270,6 @@ int main(int argc, char **argv)
         alglib::minbleicsetbc(state_fd, bndl, bndu);
         alglib::minbleicsetcond(state_fd, epsg, epsf, epsx, maxits);
 
-        timer.restart();
         real_1d_array targetWeight;
 
         alglib::minbleicoptimize(state_fd, calculate_fd, NULL, &costCalc);

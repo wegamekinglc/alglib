@@ -1,5 +1,6 @@
 #include "CostCalculator_analytic.hpp"
 #include <linalg.h>
+#include <assert.h>
 
 CostCalculator_analytic::CostCalculator_analytic(const real_1d_array expectReturn,
                         const real_2d_array& varMatrix,
@@ -12,18 +13,19 @@ CostCalculator_analytic::CostCalculator_analytic(const real_1d_array expectRetur
     assert(tradingCost_.length() == varMatrix_.rows());
     assert(currentWeight_.length() == varMatrix_.rows());
     variableNumber_ = expectReturn_.length();
+    xReal_.setlength(variableNumber_);
 }
 
 
-void CostCalculator_analytic::calculateCost(const real_1d_array& xWeight, double& func, real_1d_array& grad) const
+void CostCalculator_analytic::calculateCost(const real_1d_array& xWeight, double& func, real_1d_array& grad)
 {
 
-    real_1d_array xReal = xWeight;
+    alglib::vmove(&xReal_[0], &xWeight[0], variableNumber_);
 
-    // 计算 expect return contribution
-    double returnContribution = alglib::vdotproduct(&xReal[0], &expectReturn_[0], variableNumber_);
+    // expect return contribution
+    double returnContribution = alglib::vdotproduct(&xReal_[0], &expectReturn_[0], variableNumber_);
 
-    // 计算 risk cost
+    // risk cost
     real_1d_array yVector;
     yVector.setlength(variableNumber_);
     alglib::rmatrixmv(variableNumber_,
@@ -32,35 +34,35 @@ void CostCalculator_analytic::calculateCost(const real_1d_array& xWeight, double
                       0,
                       0,
                       0,
-                      xReal,
+                      xReal_,
                       0,
                       yVector,
                       0);
 
-    double totalRiskCost = 0.5 * alglib::vdotproduct(&yVector[0], 1, &xReal[0], 1, variableNumber_);
+    double totalRiskCost = 0.5 * alglib::vdotproduct(&yVector[0], 1, &xReal_[0], 1, variableNumber_);
 
-    // 计算 trading cost
+    // trading cost
     double totalTradingCost = 0.;
-    alglib::vsub(&xReal[0], &currentWeight_[0], variableNumber_);
+    alglib::vsub(&xReal_[0], &currentWeight_[0], variableNumber_);
 
     real_1d_array tradingGrad;
     tradingGrad.setlength(variableNumber_);
 
     for (int i = 0; i != variableNumber_; ++i) {
-        if (xReal[i] < 0.) {
-            totalTradingCost += -xReal[i] * tradingCost_[i];
+        if (xReal_[i] < 0.) {
+            totalTradingCost += -xReal_[i] * tradingCost_[i];
             tradingGrad[i] = -tradingCost_[i];
         }
         else {
-            totalTradingCost += xReal[i] * tradingCost_[i];
+            totalTradingCost += xReal_[i] * tradingCost_[i];
             tradingGrad[i] = tradingCost_[i];
         }
     }
 
-    // 整体 cost
+    // total cost
     func = totalRiskCost + totalTradingCost - returnContribution;
 
-    // 计算 gradient
+    // gradient
 
     for (int i = 0; i != variableNumber_; ++i)
         grad[i] = yVector[i] - expectReturn_[i] + tradingGrad[i];

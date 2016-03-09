@@ -57,7 +57,6 @@ void CostCalculator_adept::calculateCost(const real_1d_array& xWeight, double& f
     stack_.compute_adjoint();
     adept::get_gradients(&realX[0], variableNumber_, &grad[0]);
     func = totalCost.value();
-
 }
 
 
