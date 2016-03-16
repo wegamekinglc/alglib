@@ -48,14 +48,14 @@ void CostCalculator_cuda::calculateCost (const real_1d_array& xWeight, double& f
 
     //
     value_type  returnContribution;
-    cublasSdot(handle, variableNumber_, xReal_, 1, expectReturn_, 1, &returnContribution);
+    cublasDdot(handle, variableNumber_, xReal_, 1, expectReturn_, 1, &returnContribution);
 
     //
     value_type alpha = 1.0;
     value_type beta = 0.0;
     value_type totalRiskCost = 0.0;
-    cublasSsymv(handle, CUBLAS_FILL_MODE_LOWER, variableNumber_, &alpha, varMatrix_, variableNumber_, xReal_, 1, &beta, y_, 1);
-    cublasSdot(handle, variableNumber_, xReal_, 1, y_, 1, &totalRiskCost);
+    cublasDsymv(handle, CUBLAS_FILL_MODE_LOWER, variableNumber_, &alpha, varMatrix_, variableNumber_, xReal_, 1, &beta, y_, 1);
+    cublasDdot(handle, variableNumber_, xReal_, 1, y_, 1, &totalRiskCost);
 
     cudaMemcpy(tmp_, y_, sizeof(value_type) * variableNumber_, cudaMemcpyDeviceToHost);
 

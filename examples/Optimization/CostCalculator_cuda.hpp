@@ -12,7 +12,7 @@
 class CostCalculator_cuda {
 public:
 
-    typedef float value_type;
+    typedef double value_type;
 
     CostCalculator_cuda(const real_1d_array expectReturn,
                         const real_2d_array& varMatrix,
