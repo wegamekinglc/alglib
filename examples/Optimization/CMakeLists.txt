@@ -1,10 +1,24 @@
 #add_definitions(-D_OPENMP)
+
+set(CUDA_INCLUDE_DIR /usr/local/cuda-7.5/include)
+set(CUDA_LIBRARY_DIR /usr/local/cuda-7.5/lib64)
+
+include_directories(${CUDA_INCLUDE_DIR})
+
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     add_definitions(-DUSE_MKL_LIB)
 endif()
 file(GLOB OPTIMIZATION_FILES "*.hpp" "*.cpp")
 add_executable(Optimization ${OPTIMIZATION_FILES})
 target_link_libraries(Optimization alglib)
+
+if(${BUILD_SHARED_LIB} STREQUAL "1")
+    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcublas.so)
+    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcudart.so)
+else()
+    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcublas.a)
+    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcudart.a)
+endif()
 
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     if(${BUILD_SHARED_LIB} STREQUAL "1")
