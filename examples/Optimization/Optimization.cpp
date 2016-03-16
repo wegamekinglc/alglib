@@ -44,6 +44,7 @@
 #include "CostCalculator_fd.hpp"
 #include "CostCalculator_analytic.hpp"
 #include "CostCalculator_eigen.hpp"
+#include "CostCalculator_cuda.hpp"
 #include "CostCalculator_adept.hpp"
 #include "CostCalculator_cppad.hpp"
 #include <boost/timer.hpp>
@@ -195,6 +196,34 @@ int main(int argc, char **argv)
         << std::setw(widths[1]) << std::left << timer.elapsed()
         << std::setw(widths[2]) << std::left << state_eigen.f
         << std::setw(widths[3]) << std::left << rep_eigen.nfev
+        << std::setw(widths[4]) << std::left << min(targetWeight)
+        << std::setw(widths[5]) << std::left << max(targetWeight)
+        << std::setw(widths[6]) << std::left << sum(targetWeight)
+        << std::endl;
+    }
+
+    {
+        timer.restart();
+        CostCalculator_cuda costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+
+        alglib::minbleicstate state_cuda;
+        alglib::minbleicreport rep_cuda;
+
+        alglib::minbleiccreate(startWeight, state_cuda);
+        alglib::minbleicsetlc(state_cuda, conMatrix, condType);
+        alglib::minbleicsetbc(state_cuda, bndl, bndu);
+        alglib::minbleicsetcond(state_cuda, epsg, epsf, epsx, maxits);
+
+        real_1d_array targetWeight;
+
+        alglib::minbleicoptimize(state_cuda, calculate_cuda, NULL, &costCalc);
+        alglib::minbleicresults(state_cuda, targetWeight, rep_cuda);
+
+        std::cout << std::setw(widths[0]) << std::left << "CUDA (analytic)"
+        << std::fixed << std::setprecision(6)
+        << std::setw(widths[1]) << std::left << timer.elapsed()
+        << std::setw(widths[2]) << std::left << state_cuda.f
+        << std::setw(widths[3]) << std::left << rep_cuda.nfev
         << std::setw(widths[4]) << std::left << min(targetWeight)
         << std::setw(widths[5]) << std::left << max(targetWeight)
         << std::setw(widths[6]) << std::left << sum(targetWeight)
