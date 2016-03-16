@@ -9,10 +9,16 @@
 #include "cuda_runtime.h"
 #include "cublas_v2.h"
 
+#define _USEDOUBLE
+
 class CostCalculator_cuda {
 public:
 
+#ifndef _USEDOUBLE
+    typedef float value_type;
+#else
     typedef double value_type;
+#endif
 
     CostCalculator_cuda(const real_1d_array expectReturn,
                         const real_2d_array& varMatrix,
