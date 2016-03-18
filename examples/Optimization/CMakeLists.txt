@@ -1,7 +1,9 @@
 #add_definitions(-D_OPENMP)
 
-set(CUDA_INCLUDE_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/include")
-set(CUDA_LIBRARY_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/x64")
+#set(CUDA_INCLUDE_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/include")
+set(CUDA_INCLUDE_DIR /usr/local/cuda-7.5/include)
+#set(CUDA_LIBRARY_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/x64")
+set(CUDA_LIBRARY_DIR /usr/local/cuda-7.5/lib64)
 
 include_directories(${CUDA_INCLUDE_DIR})
 
@@ -13,8 +15,8 @@ add_executable(Optimization ${OPTIMIZATION_FILES})
 target_link_libraries(Optimization alglib)
 
 if(${BUILD_SHARED_LIB} STREQUAL "1")
-    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/cublas.lib)
-    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/cudart.lib)
+    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcublas.so)
+    target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcudart.so)
 else()
     target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcublas.a)
     target_link_libraries(Optimization ${CUDA_LIBRARY_DIR}/libcudart.a)

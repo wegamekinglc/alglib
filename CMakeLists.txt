@@ -22,7 +22,7 @@ else()
     set(LIBRARY_BUILD_TYPE STATIC)
 endif()
 
-set(Boost_INCLUDE_DIR D:/dev/boost_1_60_0)
+#set(Boost_INCLUDE_DIR D:/dev/boost_1_60_0)
 set(EIGEN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Eigen/include/eigen3)
 #set(OPENMP_LIB_PATH "D:/Program Files (x86)/IntelSWTools/compilers_and_libraries_2016/windows/compiler/lib/intel64_win")
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
