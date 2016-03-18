@@ -52,7 +52,7 @@ function [cost, target] = portfolioOptimizer(covMatrix, expRet, tCost, weight, l
         lct = libpointer('int32Ptr', linearCondType);
     end
     
-    % transfrom matlab data type to corresponding c pointer type
+    % transform matlab data type to corresponding c pointer type
     var =  libpointer('doublePtr', covMatrix);
     r = libpointer('doublePtr', expRet);
     t = libpointer('doublePtr', tCost);
@@ -60,7 +60,7 @@ function [cost, target] = portfolioOptimizer(covMatrix, expRet, tCost, weight, l
     
     target = libpointer('doublePtr', zeros(1, m));
     cost = libpointer('doublePtr', 0.0);
-    
+
     calllib(libname, 'portfolioOptimizer', m, var, r, t, w, bndl, bndu, lcm, lc, lct, target, cost);
     cost = double(cost.Value);
     target = double(target.Value);
