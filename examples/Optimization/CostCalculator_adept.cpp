@@ -27,7 +27,6 @@ CostCalculator_adept::CostCalculator_adept(const real_1d_array expectReturn,
 
 void CostCalculator_adept::calculateCost(const real_1d_array& xWeight, double& func, real_1d_array& grad)
 {
-
     using adept::adouble;
 
     boost::numeric::ublas::vector<adouble> realX(variableNumber_);
@@ -47,7 +46,7 @@ void CostCalculator_adept::calculateCost(const real_1d_array& xWeight, double& f
     boost::numeric::ublas::vector<adouble> weightChanges = realX - currentWeight_;
 
     // trading cost
-    for (int i = 0; i != variableNumber_; ++i) {
+    for (int i = 0; i < variableNumber_; ++i) {
         if (weightChanges[i] < 0.)
             totalCost[0] += -weightChanges[i] * tradingCost_[i];
         else

@@ -16,12 +16,14 @@ real_2d_array readVarianceMatrix(const std::string& path) {
     std::vector<double> allData;
 
     int rows = 0;
-    while (std::getline(in, line)) {
-        Tokenizer tok(line);
-        vec.assign(tok.begin(), tok.end());
-        for (size_t i = 0; i != vec.size(); ++i)
-            allData.push_back(boost::lexical_cast<double>(vec[i]));
-        rows += 1;
+    {
+        while (std::getline(in, line)) {
+            Tokenizer tok(line);
+            vec.assign(tok.begin(), tok.end());
+            for (size_t i = 0; i != vec.size(); ++i)
+                allData.push_back(boost::lexical_cast<double>(vec[i]));
+            rows += 1;
+        }
     }
 
     if(allData.size() / rows != rows) 

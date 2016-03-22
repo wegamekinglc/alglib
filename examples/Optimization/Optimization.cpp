@@ -49,7 +49,6 @@
 #include "CostCalculator_cppad.hpp"
 #include <boost/timer.hpp>
 #include <optimization.h>
-#include <iomanip>
 
 
 int main(int argc, char **argv)
@@ -132,6 +131,12 @@ int main(int argc, char **argv)
     for (int i = 0; i != variableNumber; ++i)
         startWeight[i] = 1.0 / variableNumber;
 
+    // guess
+    real_1d_array guess;
+    guess.setlength(variableNumber);
+    for (int i = 0; i != variableNumber; ++i)
+        guess[i] = static_cast<double>(rand()) / variableNumber / 2147483647;
+
     //
     int widths[] = { 25, 14, 14, 14, 14, 14, 14 };
     std::cout << std::setw(widths[0]) << std::left << "Method"
@@ -153,7 +158,7 @@ int main(int argc, char **argv)
         alglib::minbleicstate state_analytic;
         alglib::minbleicreport rep_analytic;
 
-        alglib::minbleiccreate(startWeight, state_analytic);
+        alglib::minbleiccreate(guess, state_analytic);
         alglib::minbleicsetlc(state_analytic, conMatrix, condType);
         alglib::minbleicsetbc(state_analytic, bndl, bndu);
         alglib::minbleicsetcond(state_analytic, epsg, epsf, epsx, maxits);
@@ -181,7 +186,7 @@ int main(int argc, char **argv)
         alglib::minbleicstate state_eigen;
         alglib::minbleicreport rep_eigen;
 
-        alglib::minbleiccreate(startWeight, state_eigen);
+        alglib::minbleiccreate(guess, state_eigen);
         alglib::minbleicsetlc(state_eigen, conMatrix, condType);
         alglib::minbleicsetbc(state_eigen, bndl, bndu);
         alglib::minbleicsetcond(state_eigen, epsg, epsf, epsx, maxits);
@@ -209,7 +214,7 @@ int main(int argc, char **argv)
         alglib::minbleicstate state_cuda;
         alglib::minbleicreport rep_cuda;
 
-        alglib::minbleiccreate(startWeight, state_cuda);
+        alglib::minbleiccreate(guess, state_cuda);
         alglib::minbleicsetlc(state_cuda, conMatrix, condType);
         alglib::minbleicsetbc(state_cuda, bndl, bndu);
         alglib::minbleicsetcond(state_cuda, epsg, epsf, epsx, maxits);
@@ -237,7 +242,7 @@ int main(int argc, char **argv)
         alglib::minbleicstate state_adept;
         alglib::minbleicreport rep_adept;
 
-        alglib::minbleiccreate(startWeight, state_adept);
+        alglib::minbleiccreate(guess, state_adept);
         alglib::minbleicsetlc(state_adept, conMatrix, condType);
         alglib::minbleicsetbc(state_adept, bndl, bndu);
         alglib::minbleicsetcond(state_adept, epsg, epsf, epsx, maxits);
@@ -265,7 +270,7 @@ int main(int argc, char **argv)
         alglib::minbleicstate state_cppad;
         alglib::minbleicreport rep_cppad;
 
-        alglib::minbleiccreate(startWeight, state_cppad);
+        alglib::minbleiccreate(guess, state_cppad);
         alglib::minbleicsetlc(state_cppad, conMatrix, condType);
         alglib::minbleicsetbc(state_cppad, bndl, bndu);
         alglib::minbleicsetcond(state_cppad, epsg, epsf, epsx, maxits);
@@ -294,7 +299,7 @@ int main(int argc, char **argv)
         alglib::minbleicstate state_fd;
         alglib::minbleicreport rep_fd;
 
-        alglib::minbleiccreatef(startWeight, diffstep, state_fd);
+        alglib::minbleiccreatef(guess, diffstep, state_fd);
         alglib::minbleicsetlc(state_fd, conMatrix, condType);
         alglib::minbleicsetbc(state_fd, bndl, bndu);
         alglib::minbleicsetcond(state_fd, epsg, epsf, epsx, maxits);

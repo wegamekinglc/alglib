@@ -3,11 +3,10 @@
 #include <assert.h>
 
 CostCalculator_analytic::CostCalculator_analytic(const real_1d_array expectReturn,
-                        const real_2d_array& varMatrix,
-                        const real_1d_array& tradingCost,
-                        const real_1d_array& currentWeight)
-        :expectReturn_(expectReturn), varMatrix_(varMatrix), tradingCost_(tradingCost), currentWeight_(currentWeight)
-{
+                                                 const real_2d_array &varMatrix,
+                                                 const real_1d_array &tradingCost,
+                                                 const real_1d_array &currentWeight)
+        : expectReturn_(expectReturn), varMatrix_(varMatrix), tradingCost_(tradingCost), currentWeight_(currentWeight) {
     assert(expectReturn_.length() == varMatrix_.rows());
     assert(varMatrix_.rows() == varMatrix_.cols());
     assert(tradingCost_.length() == varMatrix_.rows());
@@ -17,8 +16,7 @@ CostCalculator_analytic::CostCalculator_analytic(const real_1d_array expectRetur
 }
 
 
-void CostCalculator_analytic::calculateCost(const real_1d_array& xWeight, double& func, real_1d_array& grad)
-{
+void CostCalculator_analytic::calculateCost(const real_1d_array &xWeight, double &func, real_1d_array &grad) {
 
     alglib::vmove(&xReal_[0], &xWeight[0], variableNumber_);
 
@@ -48,7 +46,7 @@ void CostCalculator_analytic::calculateCost(const real_1d_array& xWeight, double
     real_1d_array tradingGrad;
     tradingGrad.setlength(variableNumber_);
 
-    for (int i = 0; i != variableNumber_; ++i) {
+    for (int i = 0; i < variableNumber_; ++i) {
         if (xReal_[i] < 0.) {
             totalTradingCost += -xReal_[i] * tradingCost_[i];
             tradingGrad[i] = -tradingCost_[i];
@@ -63,13 +61,11 @@ void CostCalculator_analytic::calculateCost(const real_1d_array& xWeight, double
     func = totalRiskCost + totalTradingCost - returnContribution;
 
     // gradient
-
-    for (int i = 0; i != variableNumber_; ++i)
+    for (int i = 0; i < variableNumber_; ++i)
         grad[i] = yVector[i] - expectReturn_[i] + tradingGrad[i];
 }
 
 
-void calculate_analytic (const real_1d_array& xWeight, double& func, real_1d_array& grad, void *ptr)
-{
-    ((CostCalculator_analytic*)ptr)->calculateCost(xWeight, func, grad);
+void calculate_analytic(const real_1d_array &xWeight, double &func, real_1d_array &grad, void *ptr) {
+    ((CostCalculator_analytic *) ptr)->calculateCost(xWeight, func, grad);
 }

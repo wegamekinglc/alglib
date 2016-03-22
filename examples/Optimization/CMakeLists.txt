@@ -1,5 +1,3 @@
-#add_definitions(-D_OPENMP)
-
 #set(CUDA_INCLUDE_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/include")
 set(CUDA_INCLUDE_DIR /usr/local/cuda-7.5/include)
 #set(CUDA_LIBRARY_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/x64")
