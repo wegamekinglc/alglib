@@ -30,11 +30,15 @@
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes.
  *
- * 3. `calculate_cppad`
+ * 3. `calculate_cuda`
+ *
+ * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes. The matrix multiplication is done with cublas.
+ *
+ * 4. `calculate_cppad`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool CppAD,
  *
- * 4. `calculate_adept`
+ * 5. `calculate_adept`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool Adept,
  */
@@ -70,7 +74,7 @@ int main(int argc, char **argv)
     char buffer[100];
 
     // Please set the data file path here
-    sprintf(buffer, "../../data/20160303_%d.csv", problemSize);
+    sprintf(buffer, "../../../data/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
