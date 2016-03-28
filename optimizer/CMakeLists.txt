@@ -18,7 +18,6 @@ target_link_libraries(optimizer cudart)
 target_link_libraries(optimizer alglib)
 
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
-
     if(${BUILD_SHARED_LIB} STREQUAL "1")
         target_link_libraries(optimizer mkl_intel_ilp64_dll.lib)
         target_link_libraries(optimizer mkl_core_dll.lib)

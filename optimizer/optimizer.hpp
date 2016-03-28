@@ -7,6 +7,8 @@
 #define DLL_EXPORT
 #endif
 
+extern "C" void DLL_EXPORT setStopCondition(double epsg, double epsf, double epsx, int maxits);
+
 extern "C" void DLL_EXPORT portfolioOptimizer(int size,
                                               double* covMatrix,
                                               double* expectedReturn,

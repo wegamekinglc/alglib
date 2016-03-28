@@ -1,3 +1,8 @@
+void setStopCondition(double epsg, 
+        double epsf, 
+        double epsx, 
+        int maxits);
+
 void portfolioOptimizer(int size,
         double* covMatrix,
         double* expectedReturn,

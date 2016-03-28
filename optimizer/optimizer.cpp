@@ -6,6 +6,21 @@
 
 using namespace alglib;
 
+static double global_epsg = 1e-8;
+static double global_epsf = 1e-8;
+static double global_epsx = 1e-8;
+static alglib::ae_int_t global_maxits = 0;
+
+
+void setStopCondition(double epsg, double epsf, double epsx, int maxits)
+{
+    global_epsg = epsg;
+    global_epsf = epsf;
+    global_epsx = epsx;
+    global_maxits = maxits;
+}
+
+
 void portfolioOptimizer(int size,
                         double* covMatrix,
                         double* expectedReturn,
@@ -31,10 +46,10 @@ void portfolioOptimizer(int size,
     real_1d_array w;
     w.setcontent(size, &currentWeight[0]);
 
-    double epsg = 1e-8;
-    double epsf = 1e-8;
-    double epsx = 1e-8;
-    alglib::ae_int_t maxits = 0;
+    double epsg = global_epsg;
+    double epsf = global_epsf;
+    double epsx = global_epsx;
+    alglib::ae_int_t maxits = global_maxits;
 
     CostCalculator calc(r, cov, t, w);
 
@@ -102,10 +117,10 @@ void portfolioOptimizerCuda(int size,
     real_1d_array w;
     w.setcontent(size, &currentWeight[0]);
 
-    double epsg = 1e-8;
-    double epsf = 1e-8;
-    double epsx = 1e-8;
-    alglib::ae_int_t maxits = 0;
+    double epsg = global_epsg;
+    double epsf = global_epsf;
+    double epsx = global_epsx;
+    alglib::ae_int_t maxits = global_maxits;
 
     CostCalculator_cuda calc(r, cov, t, w);
 
