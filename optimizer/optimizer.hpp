@@ -20,4 +20,18 @@ extern "C" void DLL_EXPORT portfolioOptimizer(int size,
                                               double* targetWeight,
                                               double* cost);
 
+
+extern "C" void DLL_EXPORT portfolioOptimizerCuda(int size,
+    double* covMatrix,
+    double* expectedReturn,
+    double* tradingCost,
+    double* currentWeight,
+    double* lowerBound,
+    double* upperBound,
+    int lcNumber,
+    double* linearCond,
+    int* linearCondType,
+    double* targetWeight,
+    double* cost);
+
 #endif //ALGLIB_OPTIMIZER_OPTIMIZER_HPP

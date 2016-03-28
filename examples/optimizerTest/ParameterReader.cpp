@@ -5,7 +5,7 @@ boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
         parameterReader(const std::string& filePath)
 {
     real_2d_array varMatrix;
-    varMatrix = readVarianceMatrix(filePath);
+    alglib::read_csv(filePath.c_str(), ',', 0, varMatrix);
 
     int variableNumber = varMatrix.rows();
 

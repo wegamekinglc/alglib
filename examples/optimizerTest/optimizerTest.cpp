@@ -1,19 +1,7 @@
 #include "ParameterReader.hpp"
+#include <optimizer.hpp>
 #include <iostream>
-#include <stdexcept>
 
-extern "C" void portfolioOptimizer(int size,
-                                   double* covMatrix,
-                                   double* expectedReturn,
-                                   double* tradingCost,
-                                   double* currentWeight,
-                                   double* lowerBound,
-                                   double* upperBound,
-                                   int lcNumber,
-                                   double* linearCond,
-                                   int* linearCondType,
-                                   double* targetWeight,
-                                   double* cost);
 
 int main()
 {
@@ -83,6 +71,10 @@ int main()
     linearCondType[0] = 0;
 
     portfolioOptimizer(size, cov, expect, t, w, bndl, bndr, 1, linearCond, linearCondType, res, cost);
+
+    std::cout << cost[0] << std::endl;
+
+    portfolioOptimizerCuda(size, cov, expect, t, w, bndl, bndr, 1, linearCond, linearCondType, res, cost);
 
     std::cout << cost[0] << std::endl;
 

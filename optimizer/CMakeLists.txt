@@ -2,9 +2,19 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     add_definitions(-DUSE_MKL_LIB)
 endif()
 
+if(WIN32)
+    include_directories("C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/include")
+    LINK_DIRECTORIES("C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/x64")
+else()
+    include_directories(/usr/local/cuda-7.5/include)
+    LINK_DIRECTORIES(/usr/local/cuda-7.5/lib64)
+endif()
+
 file(GLOB OPTIMIZER_FILES "*.hpp" "*.cpp")
 add_library(optimizer ${LIBRARY_BUILD_TYPE} ${OPTIMIZER_FILES})
 
+target_link_libraries(optimizer cublas)
+target_link_libraries(optimizer cudart)
 target_link_libraries(optimizer alglib)
 
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")

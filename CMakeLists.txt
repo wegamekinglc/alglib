@@ -7,6 +7,10 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT(alglib)
 
+set(BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
+set(EXECUTABLE_OUTPUT_PATH ${BUILD_DIR})
+set(LIBRARY_OUTPUT_PATH ${BUILD_DIR})
+
 # optimization for Intel cpu for alglib
 set(CMAKE_USE_MKL_LIB "TRUE")
 add_definitions(-DAE_CPU=AE_INTEL)
