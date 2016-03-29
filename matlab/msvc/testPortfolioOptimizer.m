@@ -1,26 +1,36 @@
 % problem size
-m = 500;
-filePath = strcat('../../data/20160303_', int2str(m), '.csv');
+msizes = [100, 200, 300, 400, 500, 700, 1000, 1500, 2000];
+alglib_times = zeros(length(msizes), 2);
 
-[var, t, r, w] = paramaterReader(filePath);
+filePath = strcat('../../data/20160303_2000.csv');
+varMatrix = csvread(filePath);
 
-bndl = zeros(1, m);
-bndu = ones(1, m);
+for i = 1:length(msizes)
+    m = msizes(i);
+    
+    [var, t, r, w] = paramaterReader(varMatrix, m);
 
-lc = ones(1, m + 1);
-lct = 0;
+    bndl = zeros(1, m);
+    bndu = ones(1, m);
 
-epsg = 1e-8;
-epsf = 1e-8;
-epsx = 1e-8;
-maxits = 0;
+    lc = ones(1, m + 1);
+    lct = 0;
 
-setStopCondition(epsg, epsf, epsx, maxits);
+    epsg = 1e-8;
+    epsf = 1e-8;
+    epsx = 1e-8;
+    maxits = 0;
 
-tic;
-[cost, target] = portfolioOptimizer(var, r, t, w, bndl, bndu, lc, lct);
-toc;
+    setStopCondition(epsg, epsf, epsx, maxits);
 
-tic;
-[costCuda, targetCuda] = portfolioOptimizerCuda(var, r, t, w, bndl, bndu, lc, lct);
-toc;
+    tic;
+    [cost, target] = portfolioOptimizer(var, r, t, w, bndl, bndu, lc, lct);
+    toc;
+    alglib_times(i, 1) = toc;
+
+    tic;
+    [costCuda, targetCuda] = portfolioOptimizerCuda(var, r, t, w, bndl, bndu, lc, lct);
+    toc;
+    alglib_times(i, 2) = toc;
+    
+end 
