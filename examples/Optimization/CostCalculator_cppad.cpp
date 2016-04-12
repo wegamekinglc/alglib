@@ -54,7 +54,8 @@ CostCalculator_cppad::CostCalculator_cppad(const real_1d_array expectReturn,
 
     std::vector<AD<double> > Y(1);
     Y[0] = totalCost;
-    fImpl_ = CppAD::ADFun<double>(X, Y);
+    fImpl_.Dependent(X, Y);
+    fImpl_.optimize();
 }
 
 

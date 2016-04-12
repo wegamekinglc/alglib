@@ -12,7 +12,7 @@ set(EXECUTABLE_OUTPUT_PATH ${BUILD_DIR})
 set(LIBRARY_OUTPUT_PATH ${BUILD_DIR})
 
 # optimization for Intel cpu for alglib
-set(CMAKE_USE_MKL_LIB "TRUE")
+set(CMAKE_USE_MKL_LIB "FALSE")
 add_definitions(-DAE_CPU=AE_INTEL)
 
 set(BUILD_SHARED_LIB "1")
