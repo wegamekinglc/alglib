@@ -58,7 +58,6 @@
 
 int main(int argc, char **argv)
 {
-
     /*
      * Read all the parameters from the file
      *
@@ -135,13 +134,14 @@ int main(int argc, char **argv)
     guess.setlength(variableNumber);
     for (int i = 0; i != variableNumber; ++i)
 		guess[i] = 1.0 / variableNumber;
+		//guess[i] = static_cast<double>(rand()) / 2147483647;
 
     //
     int widths[] = { 25, 14, 14, 14, 14, 14, 14, 14 };
     std::cout << std::setw(widths[0]) << std::left << "Method"
         << std::setw(widths[1]) << std::left << "Time(s)"
         << std::setw(widths[2]) << std::left << "f(x)"
-		<< std::setw(widths[3]) << std::left << "|x-x0|*T"
+		<< std::setw(widths[3]) << std::left << "TC-target"
         << std::setw(widths[4]) << std::left << "FuncEval"
         << std::setw(widths[5]) << std::left << "min(x_i)"
         << std::setw(widths[6]) << std::left << "max(x_i)"
@@ -211,74 +211,95 @@ int main(int argc, char **argv)
 
     {
         timer.restart();
-        CostCalculator_eigen_cons costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
+		TargetFunction target(expectReturn, varMatrix, tradingCost, currentWeight, 0.0005);
+		Brent solver;
+		double logLambda = solver.solve(target, 1e-12, 0.0, 1.0);
 
-        alglib::ae_int_t outerits = 5;
-        alglib::ae_int_t updatefreq = 10;
-        double rho = 1e8;
-
-        alglib::minnlcstate  state_eigen_cons;
-        alglib::minnlcreport  rep_eigen_cons;
-
-        alglib::minnlccreate(variableNumber, guess, state_eigen_cons);
-        alglib::minnlcsetalgoaul(state_eigen_cons, rho, outerits);
-        alglib::minnlcsetbc(state_eigen_cons, bndl, bndu);
-        alglib::minnlcsetlc(state_eigen_cons, conMatrix, condType);
-        alglib::minnlcsetcond(state_eigen_cons, epsg, epsf, epsx, maxits);
-        alglib::minnlcsetprecexactlowrank(state_eigen_cons, updatefreq);
-        alglib::minnlcsetscale(state_eigen_cons, guess);
-
-        alglib::minnlcsetnlc(state_eigen_cons, 0, 1);
-
-        real_1d_array targetWeight;
-
-        alglib::minnlcoptimize(state_eigen_cons, calculate_eigen_cons, NULL, &costCalc);
-        alglib::minnlcresults(state_eigen_cons, targetWeight, rep_eigen_cons);
-
-        std::cout << std::setw(widths[0]) << std::left << "Eigen (analytic cons.nlc)"
+        std::cout << std::setw(widths[0]) << std::left << "Eigen (cons.blec)"
         << std::fixed << std::setprecision(6)
         << std::setw(widths[1]) << std::left << timer.elapsed()
-		<< std::setw(widths[2]) << std::left << state_eigen_cons.fi[0]
-		<< std::setw(widths[3]) << std::left << state_eigen_cons.fi[1]
-        << std::setw(widths[4]) << std::left << rep_eigen_cons.nfev
-        << std::setw(widths[5]) << std::left << min(targetWeight)
-        << std::setw(widths[6]) << std::left << max(targetWeight)
-        << std::setw(widths[7]) << std::left << sum(targetWeight)
+		<< std::setw(widths[2]) << std::left << target.cost()
+		<< std::setw(widths[3]) << std::left << target(logLambda)
+		<< std::setw(widths[4]) << std::left << target.report().nfev
+		<< std::setw(widths[5]) << std::left << min(target.targetWeight())
+		<< std::setw(widths[6]) << std::left << max(target.targetWeight())
+		<< std::setw(widths[7]) << std::left << sum(target.targetWeight())
         << std::endl;
     }
 
-//    {
-//        timer.restart();
-//        CostCalculator_eigen_cons costCalc(expectReturn, varMatrix, tradingCost, currentWeight);
-//
-//        double radius = 0.1;
-//        double rho = 50.0;
-//
-//        alglib::minnsstate  state_eigen_cons;
-//        alglib::minnsreport  rep_eigen_cons;
-//
-//        alglib::minnscreate(variableNumber, guess, state_eigen_cons);
-//        alglib::minnssetalgoags(state_eigen_cons, radius, rho);
-//        alglib::minnssetbc(state_eigen_cons, bndl, bndu);
-//        alglib::minnssetlc(state_eigen_cons, conMatrix, condType);
-//        alglib::minnssetcond(state_eigen_cons, epsx, maxits);
-//        alglib::minnssetnlc(state_eigen_cons, 0, 1);
-//
-//        real_1d_array targetWeight;
-//
-//        alglib::minnsoptimize(state_eigen_cons, calculate_eigen_cons, NULL, &costCalc);
-//        alglib::minnsresults(state_eigen_cons, targetWeight, rep_eigen_cons);
-//
-//        std::cout << std::setw(widths[0]) << std::left << "Eigen (analytic cons. ns)"
-//        << std::fixed << std::setprecision(6)
-//        << std::setw(widths[1]) << std::left << timer.elapsed()
-//        << std::setw(widths[2]) << std::left << state_eigen_cons.f
-//        << std::setw(widths[3]) << std::left << rep_eigen_cons.nfev
-//        << std::setw(widths[4]) << std::left << min(targetWeight)
-//        << std::setw(widths[5]) << std::left << max(targetWeight)
-//        << std::setw(widths[6]) << std::left << sum(targetWeight)
-//        << std::endl;
-//    }
+	{
+		timer.restart();
+		CostCalculator_eigen_cons costCalc(expectReturn, varMatrix, tradingCost, currentWeight, 1.0, 0.0005);
+
+		alglib::ae_int_t outerits = 5;
+		alglib::ae_int_t updatefreq = 50;
+		double rho = 1e4;
+
+		alglib::minnlcstate  state_eigen_cons;
+		alglib::minnlcreport  rep_eigen_cons;
+
+		alglib::minnlccreate(variableNumber, guess, state_eigen_cons);
+		alglib::minnlcsetalgoaul(state_eigen_cons, rho, outerits);
+		alglib::minnlcsetbc(state_eigen_cons, bndl, bndu);
+		alglib::minnlcsetlc(state_eigen_cons, conMatrix, condType);
+		alglib::minnlcsetcond(state_eigen_cons, epsg, epsf, 1e-9, maxits);
+		//alglib::minnlcsetprecinexact(state_eigen_cons);
+		alglib::minnlcsetprecexactlowrank(state_eigen_cons, updatefreq);
+		//alglib::minnlcsetprecnone(state_eigen_cons);
+		alglib::minnlcsetscale(state_eigen_cons, guess);
+
+		alglib::minnlcsetnlc(state_eigen_cons, 0, 1);
+
+		real_1d_array targetWeight;
+
+		alglib::minnlcoptimize(state_eigen_cons, calculate_eigen_cons, NULL, &costCalc);
+		alglib::minnlcresults(state_eigen_cons, targetWeight, rep_eigen_cons);
+
+		std::cout << std::setw(widths[0]) << std::left << "Eigen (cons.nlc)"
+			<< std::fixed << std::setprecision(6)
+			<< std::setw(widths[1]) << std::left << timer.elapsed()
+			<< std::setw(widths[2]) << std::left << state_eigen_cons.fi[0]
+			<< std::setw(widths[3]) << std::left << state_eigen_cons.fi[1] * tradingCost[0]
+			<< std::setw(widths[4]) << std::left << rep_eigen_cons.nfev
+			<< std::setw(widths[5]) << std::left << min(targetWeight)
+			<< std::setw(widths[6]) << std::left << max(targetWeight)
+			<< std::setw(widths[7]) << std::left << sum(targetWeight)
+			<< std::endl;
+	}
+
+	{
+		timer.restart();
+		CostCalculator_eigen_cons costCalc(expectReturn, varMatrix, tradingCost, currentWeight, 1.0, 0.0005);
+		
+		double radius = 0.1;
+		double rho = 50.0;
+		
+		alglib::minnsstate  state_eigen_cons;
+		alglib::minnsreport  rep_eigen_cons;
+		
+		alglib::minnscreate(variableNumber, guess, state_eigen_cons);
+		alglib::minnssetalgoags(state_eigen_cons, radius, rho);
+		alglib::minnssetbc(state_eigen_cons, bndl, bndu);
+		alglib::minnssetlc(state_eigen_cons, conMatrix, condType);
+		alglib::minnssetcond(state_eigen_cons, epsx, maxits);
+		alglib::minnssetnlc(state_eigen_cons, 0, 1);
+		
+		real_1d_array targetWeight;
+		
+		alglib::minnsoptimize(state_eigen_cons, calculate_eigen_cons, NULL, &costCalc);
+		alglib::minnsresults(state_eigen_cons, targetWeight, rep_eigen_cons);
+		
+		std::cout << std::setw(widths[0]) << std::left << "Eigen (cons.ns)"
+			<< std::fixed << std::setprecision(6)
+			<< std::setw(widths[1]) << std::left << timer.elapsed()
+			<< std::setw(widths[2]) << std::left << state_eigen_cons.fi[0]
+			<< std::setw(widths[3]) << std::left << state_eigen_cons.fi[1]
+			<< std::setw(widths[4]) << std::left << rep_eigen_cons.nfev
+			<< std::setw(widths[5]) << std::left << min(targetWeight)
+			<< std::setw(widths[6]) << std::left << max(targetWeight)
+			<< std::setw(widths[7]) << std::left << sum(targetWeight)
+			<< std::endl;
+	}
 
     {
         timer.restart();
