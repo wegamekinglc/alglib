@@ -162,13 +162,13 @@ if (!(condition)) { \
 real_2d_array readVarianceMatrix(const std::string& path);
 
 
-double min(const real_1d_array& array);
+double min(const real_1d_array& array, int n = 0);
 
 
-double max(const real_1d_array& array);
+double max(const real_1d_array& array, int n = 0);
 
 
-double sum(const real_1d_array& array);
+double sum(const real_1d_array& array, int n = 0);
 
 
 template <class Impl>

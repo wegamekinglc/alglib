@@ -52,8 +52,10 @@
 #include "CostCalculator_cuda.hpp"
 #include "CostCalculator_adept.hpp"
 #include "CostCalculator_cppad.hpp"
+#include "ipopt_optimizer.hpp"
 #include <boost/timer.hpp>
-#include <optimization.h>
+#include <boost/chrono.hpp>
+#include "IpIpoptApplication.hpp"
 
 
 int main(int argc, char **argv)
@@ -209,95 +211,35 @@ int main(int argc, char **argv)
         << std::endl;
     }
 
-    {
-        timer.restart();
-		TargetFunction target(expectReturn, varMatrix, tradingCost, currentWeight, 0.0005);
-		Brent solver;
-		double logLambda = solver.solve(target, 1e-12, 0.0, 1.0);
-
-        std::cout << std::setw(widths[0]) << std::left << "Eigen (cons.blec)"
-        << std::fixed << std::setprecision(6)
-        << std::setw(widths[1]) << std::left << timer.elapsed()
-		<< std::setw(widths[2]) << std::left << target.cost()
-		<< std::setw(widths[3]) << std::left << target(logLambda)
-		<< std::setw(widths[4]) << std::left << target.report().nfev
-		<< std::setw(widths[5]) << std::left << min(target.targetWeight())
-		<< std::setw(widths[6]) << std::left << max(target.targetWeight())
-		<< std::setw(widths[7]) << std::left << sum(target.targetWeight())
-        << std::endl;
-    }
-
 	{
-		timer.restart();
-		CostCalculator_eigen_cons costCalc(expectReturn, varMatrix, tradingCost, currentWeight, 1.0, 0.0005);
+		boost::chrono::time_point<boost::chrono::high_resolution_clock>
+			start = boost::chrono::high_resolution_clock::now();
+		Ipopt::SmartPtr<PP_Problem> mynlp = new PP_Problem(expectReturn, varMatrix, tradingCost, currentWeight, 0.0005);
+		mynlp->setBoundedConstraint(bndl, bndu);
+		mynlp->setLinearConstraint(conMatrix, condType);
 
-		alglib::ae_int_t outerits = 5;
-		alglib::ae_int_t updatefreq = 50;
-		double rho = 1e4;
+		Ipopt::SmartPtr<Ipopt::IpoptApplication> app = IpoptApplicationFactory();
 
-		alglib::minnlcstate  state_eigen_cons;
-		alglib::minnlcreport  rep_eigen_cons;
+		app->Options()->SetNumericValue("tol", 1e-8);
+		app->Options()->SetIntegerValue("print_level", 5);
+		app->Options()->SetStringValue("hessian_approximation", "limited-memory");
+		app->Options()->SetIntegerValue("limited_memory_max_history", 3);
 
-		alglib::minnlccreate(variableNumber, guess, state_eigen_cons);
-		alglib::minnlcsetalgoaul(state_eigen_cons, rho, outerits);
-		alglib::minnlcsetbc(state_eigen_cons, bndl, bndu);
-		alglib::minnlcsetlc(state_eigen_cons, conMatrix, condType);
-		alglib::minnlcsetcond(state_eigen_cons, epsg, epsf, 1e-9, maxits);
-		//alglib::minnlcsetprecinexact(state_eigen_cons);
-		alglib::minnlcsetprecexactlowrank(state_eigen_cons, updatefreq);
-		//alglib::minnlcsetprecnone(state_eigen_cons);
-		alglib::minnlcsetscale(state_eigen_cons, guess);
+		Ipopt::ApplicationReturnStatus status = app->Initialize();
+		status = app->OptimizeTNLP(mynlp);
 
-		alglib::minnlcsetnlc(state_eigen_cons, 0, 1);
+		boost::chrono::time_point<boost::chrono::high_resolution_clock>
+			current = boost::chrono::high_resolution_clock::now();
 
-		real_1d_array targetWeight;
-
-		alglib::minnlcoptimize(state_eigen_cons, calculate_eigen_cons, NULL, &costCalc);
-		alglib::minnlcresults(state_eigen_cons, targetWeight, rep_eigen_cons);
-
-		std::cout << std::setw(widths[0]) << std::left << "Eigen (cons.nlc)"
+		std::cout << std::setw(widths[0]) << std::left << "Ipopt (analytic)"
 			<< std::fixed << std::setprecision(6)
-			<< std::setw(widths[1]) << std::left << timer.elapsed()
-			<< std::setw(widths[2]) << std::left << state_eigen_cons.fi[0]
-			<< std::setw(widths[3]) << std::left << state_eigen_cons.fi[1] * tradingCost[0]
-			<< std::setw(widths[4]) << std::left << rep_eigen_cons.nfev
-			<< std::setw(widths[5]) << std::left << min(targetWeight)
-			<< std::setw(widths[6]) << std::left << max(targetWeight)
-			<< std::setw(widths[7]) << std::left << sum(targetWeight)
-			<< std::endl;
-	}
-
-	{
-		timer.restart();
-		CostCalculator_eigen_cons costCalc(expectReturn, varMatrix, tradingCost, currentWeight, 1.0, 0.0005);
-		
-		double radius = 0.1;
-		double rho = 50.0;
-		
-		alglib::minnsstate  state_eigen_cons;
-		alglib::minnsreport  rep_eigen_cons;
-		
-		alglib::minnscreate(variableNumber, guess, state_eigen_cons);
-		alglib::minnssetalgoags(state_eigen_cons, radius, rho);
-		alglib::minnssetbc(state_eigen_cons, bndl, bndu);
-		alglib::minnssetlc(state_eigen_cons, conMatrix, condType);
-		alglib::minnssetcond(state_eigen_cons, epsx, maxits);
-		alglib::minnssetnlc(state_eigen_cons, 0, 1);
-		
-		real_1d_array targetWeight;
-		
-		alglib::minnsoptimize(state_eigen_cons, calculate_eigen_cons, NULL, &costCalc);
-		alglib::minnsresults(state_eigen_cons, targetWeight, rep_eigen_cons);
-		
-		std::cout << std::setw(widths[0]) << std::left << "Eigen (cons.ns)"
-			<< std::fixed << std::setprecision(6)
-			<< std::setw(widths[1]) << std::left << timer.elapsed()
-			<< std::setw(widths[2]) << std::left << state_eigen_cons.fi[0]
-			<< std::setw(widths[3]) << std::left << state_eigen_cons.fi[1]
-			<< std::setw(widths[4]) << std::left << rep_eigen_cons.nfev
-			<< std::setw(widths[5]) << std::left << min(targetWeight)
-			<< std::setw(widths[6]) << std::left << max(targetWeight)
-			<< std::setw(widths[7]) << std::left << sum(targetWeight)
+			<< std::setw(widths[1]) << std::left << boost::chrono::nanoseconds(current - start).count() / 1.0e9
+			<< std::setw(widths[2]) << std::left << mynlp->feval()
+			<< std::setw(widths[2]) << std::left << mynlp->tradingCost()
+			<< std::setw(widths[4]) << std::left << mynlp->fcount()
+			<< std::setw(widths[5]) << std::left << min(mynlp->xValue(), variableNumber)
+			<< std::setw(widths[6]) << std::left << max(mynlp->xValue(), variableNumber)
+			<< std::setw(widths[7]) << std::left << sum(mynlp->xValue(), variableNumber)
 			<< std::endl;
 	}
 

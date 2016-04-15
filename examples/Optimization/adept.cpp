@@ -33,9 +33,17 @@
 #include "adept.h"
 
 #ifdef HAVE_CONFIG_H
+#undef HAVE_CONFIG_H
+
+
+#ifdef HAVE_CONFIG_H
 // Obtain compiler (CXX) and compile flags (CXXFLAGS) from config.h
 #include "config.h"
 #endif
+
+#define HAVE_CONFIG_H
+
+#endif 
 
 
 namespace adept {

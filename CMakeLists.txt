@@ -16,6 +16,7 @@ set(LIBRARY_OUTPUT_PATH ${BUILD_DIR})
 
 # optimization for Intel cpu for alglib
 add_definitions(-DAE_CPU=AE_INTEL)
+add_definitions(-DHAVE_CONFIG_H)
 
 
 if(${BUILD_SHARED_LIB} STREQUAL "1")
@@ -42,6 +43,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/alglib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CppAD)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Eigen/include/eigen3)
+include_directories(D:/dev/ipopt/include/coin)
+
+link_directories(D:/dev/ipopt/lib/x64/ReleaseMKL)
 
 add_subdirectory(alglib)
 add_subdirectory(CppAD)

@@ -74,7 +74,7 @@ int main()
 
     std::cout << cost[0] << std::endl;
 
-    portfolioOptimizerCuda(size, cov, expect, t, w, bndl, bndr, 1, linearCond, linearCondType, res, cost);
+	portfolioOptimizerWithTradingCostBudget(size, cov, expect, t, w, 20.3, bndl, bndr, 1, linearCond, linearCondType, res, cost);
 
     std::cout << cost[0] << std::endl;
 
