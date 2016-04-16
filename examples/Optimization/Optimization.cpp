@@ -48,7 +48,6 @@
 #include "CostCalculator_fd.hpp"
 #include "CostCalculator_analytic.hpp"
 #include "CostCalculator_eigen.hpp"
-#include "CostCalculator_eigen_cons.hpp"
 #include "CostCalculator_cuda.hpp"
 #include "CostCalculator_adept.hpp"
 #include "CostCalculator_cppad.hpp"
@@ -56,6 +55,7 @@
 #include <boost/timer.hpp>
 #include <boost/chrono.hpp>
 #include "IpIpoptApplication.hpp"
+#include "optimization.h"
 
 
 int main(int argc, char **argv)
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     char buffer[100];
 
     // Please set the data file path here
-    sprintf(buffer, "../../../data/20160303_%d.csv", problemSize);
+    sprintf(buffer, "../../data/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
@@ -221,8 +221,9 @@ int main(int argc, char **argv)
 		Ipopt::SmartPtr<Ipopt::IpoptApplication> app = IpoptApplicationFactory();
 
 		app->Options()->SetNumericValue("tol", 1e-8);
-		app->Options()->SetIntegerValue("print_level", 5);
+		app->Options()->SetIntegerValue("print_level", 0);
 		app->Options()->SetStringValue("hessian_approximation", "limited-memory");
+        app->Options()->SetStringValue("linear_solver", "ma97");
 		app->Options()->SetIntegerValue("limited_memory_max_history", 3);
 
 		Ipopt::ApplicationReturnStatus status = app->Initialize();
