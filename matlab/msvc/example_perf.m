@@ -1,10 +1,10 @@
 % add library folder to matlab search path
 addpath ./lib
 
-msizes = linspace(100, 2800, 28);
+msizes = linspace(100, 500, 5);
 running_times = zeros(length(msizes), 3);
 
-filePath = 'data/20160303_2817.csv';
+filePath = 'data/20160303_500.csv';
 varMatrix = csvread(filePath);
 
 for i = 1:length(msizes)
