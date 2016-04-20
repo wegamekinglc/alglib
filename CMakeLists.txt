@@ -25,8 +25,6 @@ else()
     set(LIBRARY_BUILD_TYPE STATIC)
 endif()
 
-set(Boost_INCLUDE_DIR D:/dev/boost_1_60_0)
-
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     if(MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DMKL_ILP64")
@@ -38,14 +36,16 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     link_directories("D:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64_win")
 endif()
 
+set(Boost_INCLUDE_DIR D:/dev/boost_1_60_0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/alglib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CppAD)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Eigen/include/eigen3)
-include_directories(D:/dev/ipopt/include/coin)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ipopt/include/coin)
 
-link_directories(D:/dev/ipopt/lib/x64/ReleaseMKL)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/ipopt/lib/x64/ReleaseMKL)
+link_directories(D:/dev/boost_1_60_0/stage/lib)
 
 add_subdirectory(alglib)
 add_subdirectory(CppAD)

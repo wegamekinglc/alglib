@@ -10,12 +10,23 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     add_definitions(-DUSE_MKL_LIB)
 endif()
 
+
+
 file(GLOB OPTIMIZATION_FILES "*.hpp" "*.cpp")
 add_executable(Optimization ${OPTIMIZATION_FILES})
 target_link_libraries(Optimization alglib)
 
 target_link_libraries(Optimization cublas)
 target_link_libraries(Optimization cudart)
+if(MSVC)
+else()
+    target_link_libraries(Optimization boost_system)
+    target_link_libraries(Optimization boost_chrono)
+endif()
+
+target_link_libraries(Optimization IpOptFSS)
+target_link_libraries(Optimization IpOpt-vc10)
+
 
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     if(${BUILD_SHARED_LIB} STREQUAL "1")
