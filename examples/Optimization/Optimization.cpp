@@ -227,7 +227,6 @@ int main(int argc, char **argv)
 		app->Options()->SetNumericValue("tol", 1e-8);
 		app->Options()->SetIntegerValue("print_level", 0);
 		app->Options()->SetStringValue("hessian_approximation", "limited-memory");
-        app->Options()->SetStringValue("linear_solver", "ma97");
 		app->Options()->SetIntegerValue("limited_memory_max_history", 3);
 
 		Ipopt::ApplicationReturnStatus status = app->Initialize();

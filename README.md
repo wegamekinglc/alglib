@@ -41,10 +41,25 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
 
    
         Please input problem size (e.g. 100): 100
-        Method              Time(s)       f(x)          FuncEval      min(x_i)      max(x_i)      sum(x_i)
-        Analytic            0.001000      -0.131214     121           0.000000      0.651510      1.000000
-        AD (adept)          0.025000      -0.131214     121           0.000000      0.651510      1.000000
-        Finite Difference   0.178000      -0.131214     34281         0.000000      0.651510      1.000000
+        Method                   Time(s)       f(x)          FuncEval      min(x_i)      max(x_i)      sum(x_i)
+        Alglib (analytic)        0.002000      -0.131214     121           0.000000      0.651510      1.000000
+        Eigen (analytic)         0.002000      -0.131214     121           0.000000      0.651510      1.000000
+
+        ******************************************************************************
+        This program contains Ipopt, a library for large-scale nonlinear optimization.
+        Ipopt is released as open source code under the Eclipse Public License (EPL).
+                For more information visit http://projects.coin-or.org/Ipopt
+        ******************************************************************************
+
+        NOTE: You are using Ipopt by default with the MUMPS linear solver.
+        Other linear solvers might be more efficient (see Ipopt documentation).
+
+
+        Ipopt (analytic)         0.063411      -0.019598     15            0.000000      0.093335      1.000000
+        CUDA (analytic)          0.987000      -0.131214     121           0.000000      0.651510      1.000000
+        AD (adept)               0.029000      -0.131214     121           0.000000      0.651510      1.000000
+        AD (cppad)               0.052000      -0.131214     121           0.000000      0.651510      1.000000
+        Finite Difference        0.214000      -0.131214     34281         0.000000      0.651510      1.000000
 
 
 2. ``Matlab``
