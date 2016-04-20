@@ -19,26 +19,34 @@
  * \bar w : current portfolio allocation vector.
  *
  * for this problem we use single optimization method `minbleic` which are implemented in Alglib combined with
- * the following 4 ways to calculate cost function or its corresponding gradient:
+ * the following 7 ways to calculate cost function or its corresponding gradient:
  *
- * 1. `calculate_fd`
+ * 1. `Finite Difference`
  *
  * Only cost function are provided to optimizer. The gradient are calculated by finite difference method which are handled by the optimizer
  * internally.
  *
- * 2. `calculate_analytic`
+ * 2. `Alglib (analytic)`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes.
  *
- * 3. `calculate_cuda`
+ * 3. `Eigen (abalytic)`
+ *
+ * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes using Eigen matrix library.
+ *
+ * 4. `Ipopt (analytic)`
+ *
+ * Using Ipopt library to solve
+ *
+ * 5. `CUDA (analytic)`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated explicitly by hand-written codes. The matrix multiplication is done with cublas.
  *
- * 4. `calculate_cppad`
+ * 6. `AD (cppad)`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool CppAD,
  *
- * 5. `calculate_adept`
+ * 7. `AD (adept)`
  *
  * Both cost function and its gradient are provided to optimizer. The gradient are calculated using automatic differentiation tool Adept,
  */
@@ -136,18 +144,16 @@ int main(int argc, char **argv)
     guess.setlength(variableNumber);
     for (int i = 0; i != variableNumber; ++i)
 		guess[i] = 1.0 / variableNumber;
-		//guess[i] = static_cast<double>(rand()) / 2147483647;
 
     //
-    int widths[] = { 25, 14, 14, 14, 14, 14, 14, 14 };
+    int widths[] = { 25, 14, 14, 14, 14, 14, 14};
     std::cout << std::setw(widths[0]) << std::left << "Method"
         << std::setw(widths[1]) << std::left << "Time(s)"
         << std::setw(widths[2]) << std::left << "f(x)"
-		<< std::setw(widths[3]) << std::left << "TC-target"
-        << std::setw(widths[4]) << std::left << "FuncEval"
-        << std::setw(widths[5]) << std::left << "min(x_i)"
-        << std::setw(widths[6]) << std::left << "max(x_i)"
-        << std::setw(widths[7]) << std::left << "sum(x_i)"
+        << std::setw(widths[3]) << std::left << "FuncEval"
+        << std::setw(widths[4]) << std::left << "min(x_i)"
+        << std::setw(widths[5]) << std::left << "max(x_i)"
+        << std::setw(widths[6]) << std::left << "sum(x_i)"
         << std::endl;
 
 
@@ -174,11 +180,10 @@ int main(int argc, char **argv)
                 << std::fixed << std::setprecision(6)
                 << std::setw(widths[1]) << std::left << timer.elapsed()
                 << std::setw(widths[2]) << std::left << state_analytic.f
-				<< std::setw(widths[3]) << std::left << "-"
-                << std::setw(widths[4]) << std::left << rep_analytic.nfev
-                << std::setw(widths[5]) << std::left << min(targetWeight)
-                << std::setw(widths[6]) << std::left << max(targetWeight)
-                << std::setw(widths[7]) << std::left << sum(targetWeight)
+                << std::setw(widths[3]) << std::left << rep_analytic.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
                 << std::endl;
     }
 
@@ -203,11 +208,10 @@ int main(int argc, char **argv)
         << std::fixed << std::setprecision(6)
         << std::setw(widths[1]) << std::left << timer.elapsed()
         << std::setw(widths[2]) << std::left << state_eigen.f
-		<< std::setw(widths[3]) << std::left << "-"
-        << std::setw(widths[4]) << std::left << rep_eigen.nfev
-        << std::setw(widths[5]) << std::left << min(targetWeight)
-        << std::setw(widths[6]) << std::left << max(targetWeight)
-        << std::setw(widths[7]) << std::left << sum(targetWeight)
+        << std::setw(widths[3]) << std::left << rep_eigen.nfev
+        << std::setw(widths[4]) << std::left << min(targetWeight)
+        << std::setw(widths[5]) << std::left << max(targetWeight)
+        << std::setw(widths[6]) << std::left << sum(targetWeight)
         << std::endl;
     }
 
@@ -236,11 +240,10 @@ int main(int argc, char **argv)
 			<< std::fixed << std::setprecision(6)
 			<< std::setw(widths[1]) << std::left << boost::chrono::nanoseconds(current - start).count() / 1.0e9
 			<< std::setw(widths[2]) << std::left << mynlp->feval()
-			<< std::setw(widths[2]) << std::left << mynlp->tradingCost()
-			<< std::setw(widths[4]) << std::left << mynlp->fcount()
-			<< std::setw(widths[5]) << std::left << min(mynlp->xValue(), variableNumber)
-			<< std::setw(widths[6]) << std::left << max(mynlp->xValue(), variableNumber)
-			<< std::setw(widths[7]) << std::left << sum(mynlp->xValue(), variableNumber)
+			<< std::setw(widths[3]) << std::left << mynlp->fcount()
+			<< std::setw(widths[4]) << std::left << min(mynlp->xValue(), variableNumber)
+			<< std::setw(widths[5]) << std::left << max(mynlp->xValue(), variableNumber)
+			<< std::setw(widths[6]) << std::left << sum(mynlp->xValue(), variableNumber)
 			<< std::endl;
 	}
 
@@ -265,11 +268,10 @@ int main(int argc, char **argv)
         << std::fixed << std::setprecision(6)
         << std::setw(widths[1]) << std::left << timer.elapsed()
         << std::setw(widths[2]) << std::left << state_cuda.f
-		<< std::setw(widths[3]) << std::left << "-"
-        << std::setw(widths[4]) << std::left << rep_cuda.nfev
-        << std::setw(widths[5]) << std::left << min(targetWeight)
-        << std::setw(widths[6]) << std::left << max(targetWeight)
-        << std::setw(widths[7]) << std::left << sum(targetWeight)
+        << std::setw(widths[3]) << std::left << rep_cuda.nfev
+        << std::setw(widths[4]) << std::left << min(targetWeight)
+        << std::setw(widths[5]) << std::left << max(targetWeight)
+        << std::setw(widths[6]) << std::left << sum(targetWeight)
         << std::endl;
     }
 
@@ -294,11 +296,10 @@ int main(int argc, char **argv)
                 << std::fixed
                 << std::setw(widths[1]) << std::left << timer.elapsed()
                 << std::setw(widths[2]) << std::left << state_adept.f
-				<< std::setw(widths[3]) << std::left << "-"
-                << std::setw(widths[4]) << std::left << rep_adept.nfev
-                << std::setw(widths[5]) << std::left << min(targetWeight)
-                << std::setw(widths[6]) << std::left << max(targetWeight)
-                << std::setw(widths[7]) << std::left << sum(targetWeight)
+                << std::setw(widths[3]) << std::left << rep_adept.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
                 << std::endl;
     }
 
@@ -323,11 +324,10 @@ int main(int argc, char **argv)
                 << std::fixed
                 << std::setw(widths[1]) << std::left << timer.elapsed()
                 << std::setw(widths[2]) << std::left << state_cppad.f
-				<< std::setw(widths[3]) << std::left << "-"
-                << std::setw(widths[4]) << std::left << rep_cppad.nfev
-                << std::setw(widths[5]) << std::left << min(targetWeight)
-                << std::setw(widths[6]) << std::left << max(targetWeight)
-                << std::setw(widths[7]) << std::left << sum(targetWeight)
+                << std::setw(widths[3]) << std::left << rep_cppad.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
                 << std::endl;
     }
 
@@ -353,11 +353,10 @@ int main(int argc, char **argv)
                 << std::fixed
                 << std::setw(widths[1]) << std::left << timer.elapsed()
                 << std::setw(widths[2]) << std::left << state_fd.f
-				<< std::setw(widths[3]) << std::left << "-"
-                << std::setw(widths[4]) << std::left << rep_fd.nfev
-                << std::setw(widths[5]) << std::left << min(targetWeight)
-                << std::setw(widths[6]) << std::left << max(targetWeight)
-                << std::setw(widths[7]) << std::left << sum(targetWeight)
+                << std::setw(widths[3]) << std::left << rep_fd.nfev
+                << std::setw(widths[4]) << std::left << min(targetWeight)
+                << std::setw(widths[5]) << std::left << max(targetWeight)
+                << std::setw(widths[6]) << std::left << sum(targetWeight)
                 << std::endl;
     }
 
