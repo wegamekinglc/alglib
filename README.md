@@ -24,7 +24,7 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
 * \bar w : 当前资产配置。
 
 
-基于这个问题，例子中将测试 ``Alglib`` 在3种不同计算方案下的表现，同时给出了 ``Matlab`` 的对比用例。
+基于这个问题，例子中将测试 ``Alglib`` 在多种不同计算方案下的表现，同时给出了 ``Matlab`` 的对比用例。
 
 运行例子
 --------------------------
@@ -39,11 +39,10 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
     
    * 运行 ``Optimization`` 项目，输入资产数目之后，会有类似如下的运行结果：
 
-   
         Please input problem size (e.g. 100): 100
         Method                   Time(s)       f(x)          FuncEval      min(x_i)      max(x_i)      sum(x_i)
         Alglib (analytic)        0.002000      -0.131214     121           0.000000      0.651510      1.000000
-        Eigen (analytic)         0.002000      -0.131214     121           0.000000      0.651510      1.000000
+        Eigen (analytic)         0.001000      -0.131214     121           0.000000      0.651510      1.000000
 
         ******************************************************************************
         This program contains Ipopt, a library for large-scale nonlinear optimization.
@@ -55,11 +54,11 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
         Other linear solvers might be more efficient (see Ipopt documentation).
 
 
-        Ipopt (analytic)         0.063411      -0.019598     15            0.000000      0.093335      1.000000
-        CUDA (analytic)          0.987000      -0.131214     121           0.000000      0.651510      1.000000
-        AD (adept)               0.029000      -0.131214     121           0.000000      0.651510      1.000000
-        AD (cppad)               0.052000      -0.131214     121           0.000000      0.651510      1.000000
-        Finite Difference        0.214000      -0.131214     34281         0.000000      0.651510      1.000000
+        Ipopt (analytic)         0.104319      -0.131216     22            0.000000      0.653194      1.000001
+        CUDA (analytic)          0.541000      -0.131214     121           0.000000      0.651510      1.000000
+        AD (adept)               0.024000      -0.131214     121           0.000000      0.651510      1.000000
+        AD (cppad)               0.046000      -0.131214     121           0.000000      0.651510      1.000000
+        Finite Difference        0.203000      -0.131214     34281         0.000000      0.651510      1.000000
 
 
 2. ``Matlab``

@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 	{
 		boost::chrono::time_point<boost::chrono::high_resolution_clock>
 			start = boost::chrono::high_resolution_clock::now();
-		Ipopt::SmartPtr<PP_Problem> mynlp = new PP_Problem(expectReturn, varMatrix, tradingCost, currentWeight, 0.0005);
+		Ipopt::SmartPtr<PP_Problem> mynlp = new PP_Problem(expectReturn, varMatrix, tradingCost, currentWeight, 50.0);
 		mynlp->setBoundedConstraint(bndl, bndu);
 		mynlp->setLinearConstraint(conMatrix, condType);
 
