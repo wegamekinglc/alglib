@@ -44,7 +44,9 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Eigen/include/eigen3)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ipopt/include/coin)
 
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/ipopt/lib/x64/ReleaseMKL)
+set(IPOPT_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ipopt/lib/x64/ReleaseMKL)
+
+link_directories(${IPOPT_LIB_DIR})
 link_directories(D:/dev/boost_1_60_0/stage/lib)
 
 add_subdirectory(alglib)

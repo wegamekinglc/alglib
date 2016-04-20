@@ -152,7 +152,6 @@ void portfolioOptimizerWithTradingCostBudget(int size,
 
 	app->Options()->SetNumericValue("tol", epsg);
 	app->Options()->SetIntegerValue("print_level", 0);
-	app->Options()->SetStringValue("linear_solver", "ma97");
 	app->Options()->SetStringValue("hessian_approximation", "limited-memory");
 	app->Options()->SetIntegerValue("limited_memory_max_history", 3);
 

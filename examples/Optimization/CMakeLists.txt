@@ -41,3 +41,13 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
         target_link_libraries(Optimization libiomp5md.lib)
     endif()
 endif()
+
+add_custom_command(TARGET Optimization POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${IPOPT_LIB_DIR}/IpOptFSS.dll"
+        ${BUILD_DIR}/Release)
+
+add_custom_command(TARGET Optimization POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${IPOPT_LIB_DIR}/IpOpt-vc10.dll"
+        ${BUILD_DIR}/Release)
