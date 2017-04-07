@@ -1,19 +1,21 @@
-alglib 优化例子
-========================
+# alglib 优化例子
 
-测试样例
-------------------------
+## 测试样例
 
 测试如下问题的求解：
 
 带线性交易成本的单期资产优化问题：
 
-C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
+$$
+\begin{aligned}
+    C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
+\end{aligned}
+$$
 
 具有如下的限制条件：
 
-* 0 < w_i < 1 for each i,
-* \sum_i w_i = 1.
+* $0 < w_i < 1 for each i,$
+* $\sum_i w_i = 1.$
 
 其中：
 
@@ -21,7 +23,7 @@ C = \mathrm{argmin}_{w} ( \frac{1}{2} w^TCw + |w - \bar w|^TT - w^TR)
 * C : 资产协方差矩阵；
 * T : 单位交易成本；
 * R : 预期收益；
-* \bar w : 当前资产配置。
+* $\bar w$ : 当前资产配置。
 
 
 基于这个问题，例子中将测试 ``Alglib`` 在多种不同计算方案下的表现，同时给出了 ``Matlab`` 的对比用例。

@@ -1,9 +1,6 @@
-Introduction
-==========================
+# Introduction
 
---------------------------
-1.``portfolioOptimizer``
---------------------------
+## 1.``portfolioOptimizer``
 
 $$
 \begin{aligned}
@@ -33,9 +30,7 @@ $$
 \end{aligned}
 $$
 
--------------------------------------------
-2. `portfolioOptimizerWithTradingCostBudget`
---------------------------------------------
+## 2. `portfolioOptimizerWithTradingCostBudget`
 
 $$
 \begin{aligned}
