@@ -6,8 +6,13 @@ file(GLOB OPTIMIZER_FILES "*.hpp" "*.cpp")
 add_library(optimizer ${LIBRARY_BUILD_TYPE} ${OPTIMIZER_FILES})
 
 target_link_libraries(optimizer alglib)
-target_link_libraries(optimizer IpOptFSS)
-target_link_libraries(optimizer IpOpt-vc10)
+
+if(MSVC)
+    target_link_libraries(optimizer IpOptFSS)
+    target_link_libraries(optimizer IpOpt-vc10)
+else()
+    target_link_libraries(optimizer ipopt)
+endif()
 
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     if(${BUILD_SHARED_LIB} STREQUAL "1")
@@ -23,12 +28,14 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     endif()
 endif()
 
-add_custom_command(TARGET optimizer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${IPOPT_LIB_DIR}/IpOptFSS.dll"
-        ${BUILD_DIR}/Release)
+if(MSVC)
+    add_custom_command(TARGET optimizer POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${IPOPT_LIB_DIR}/IpOptFSS.dll"
+            ${BUILD_DIR}/Release)
 
-add_custom_command(TARGET optimizer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${IPOPT_LIB_DIR}/IpOpt-vc10.dll"
-        ${BUILD_DIR}/Release)
+    add_custom_command(TARGET optimizer POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${IPOPT_LIB_DIR}/IpOpt-vc10.dll"
+            ${BUILD_DIR}/Release)
+endif()

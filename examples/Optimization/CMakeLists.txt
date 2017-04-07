@@ -1,32 +1,22 @@
-if(WIN32)
-    include_directories("C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/include")
-    LINK_DIRECTORIES("C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v7.5/lib/x64")
-else()
-    include_directories(/usr/local/cuda-7.5/include)
-    LINK_DIRECTORIES(/usr/local/cuda-7.5/lib64)
-endif()
-
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     add_definitions(-DUSE_MKL_LIB)
 endif()
 
-
-
 file(GLOB OPTIMIZATION_FILES "*.hpp" "*.cpp")
 add_executable(Optimization ${OPTIMIZATION_FILES})
-target_link_libraries(Optimization alglib)
 
+target_link_libraries(Optimization alglib)
 target_link_libraries(Optimization cublas)
 target_link_libraries(Optimization cudart)
+
 if(MSVC)
+    target_link_libraries(Optimization IpOptFSS)
+    target_link_libraries(Optimization IpOpt-vc10)
 else()
+    target_link_libraries(Optimization ipopt)
     target_link_libraries(Optimization boost_system)
     target_link_libraries(Optimization boost_chrono)
 endif()
-
-target_link_libraries(Optimization IpOptFSS)
-target_link_libraries(Optimization IpOpt-vc10)
-
 
 if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     if(${BUILD_SHARED_LIB} STREQUAL "1")
@@ -42,12 +32,14 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     endif()
 endif()
 
-add_custom_command(TARGET Optimization POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${IPOPT_LIB_DIR}/IpOptFSS.dll"
-        ${BUILD_DIR}/Release)
+if(MSVC)
+    add_custom_command(TARGET Optimization POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${IPOPT_LIB_DIR}/IpOptFSS.dll"
+            ${BUILD_DIR}/Release)
 
-add_custom_command(TARGET Optimization POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${IPOPT_LIB_DIR}/IpOpt-vc10.dll"
-        ${BUILD_DIR}/Release)
+    add_custom_command(TARGET Optimization POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${IPOPT_LIB_DIR}/IpOpt-vc10.dll"
+            ${BUILD_DIR}/Release)
+endif()
