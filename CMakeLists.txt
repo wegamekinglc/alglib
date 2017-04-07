@@ -7,6 +7,9 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT(alglib)
 
+find_package(Boost REQUIRED)
+find_package(CUDA REQUIRED)
+
 set(CMAKE_USE_MKL_LIB "False")
 set(BUILD_SHARED_LIB "1")
 
@@ -34,6 +37,7 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
     endif()
 endif()
 
+include_directories(${CUDA_TOOLKIT_INCLUDE})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/alglib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/CppAD)
