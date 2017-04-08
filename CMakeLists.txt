@@ -24,7 +24,6 @@ find_package(CUDA REQUIRED)
 set(BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build)
 set(EXECUTABLE_OUTPUT_PATH ${BUILD_DIR})
 set(LIBRARY_OUTPUT_PATH ${BUILD_DIR})
-set(Boost_DIR D:/dev/boost_1_63_0)
 
 # optimization for Intel cpu for alglib
 add_definitions(-DAE_CPU=AE_INTEL)
