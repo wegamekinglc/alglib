@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpMatrix.hpp 2472 2014-04-05 17:47:20Z stefan $
+// $Id: IpMatrix.hpp 2276 2013-05-05 12:33:44Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -35,8 +35,7 @@ namespace Ipopt
     Matrix(const MatrixSpace* owner_space)
         :
         TaggedObject(),
-        owner_space_(owner_space),
-        valid_cache_tag_(0)
+        owner_space_(owner_space)
     {}
 
     /** Destructor */

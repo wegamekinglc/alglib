@@ -11,7 +11,7 @@ target_link_libraries(Optimization ${CUDA_CUDART_LIBRARY})
 
 if(MSVC)
     target_link_libraries(Optimization IpOptFSS)
-    target_link_libraries(Optimization IpOpt-vc10)
+    target_link_libraries(Optimization IpOpt-vc8)
 else()
     target_link_libraries(Optimization ipopt)
 endif()
@@ -43,6 +43,6 @@ if(MSVC)
 
     add_custom_command(TARGET Optimization POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${IPOPT_LIB_DIR}/IpOpt-vc10.dll"
+            "${IPOPT_LIB_DIR}/IpOpt-vc8.dll"
             ${BUILD_DIR}/Release)
 endif()

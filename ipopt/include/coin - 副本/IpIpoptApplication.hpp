@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpIpoptApplication.hpp 2617 2015-11-26 16:00:20Z stefan $
+// $Id: IpIpoptApplication.hpp 2173 2013-03-30 17:25:39Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -63,53 +63,15 @@ namespace Ipopt
     list. */
     virtual SmartPtr<IpoptApplication> clone();
 
-    /** Initialization method. This method reads options from the
-     *  input stream and initializes the journalists. It returns
-     *  something other than Solve_Succeeded if there was a
-     *  problem in the initialization (such as an invalid option).
-     *  You should call one of the initialization methods at some
-     *  point before the first optimize call.
-     *  Set @par allow_clobber to true if you want to allow
-     *  overwriting options that are set by the input stream.
-     */
-    virtual ApplicationReturnStatus Initialize(std::istream& is, bool allow_clobber = false);
-    /** Initialization method. This method reads options from the
-     *  params file and initializes the journalists. It returns
-     *  something other than Solve_Succeeded if there was a
-     *  problem in the initialization (such as an invalid option).
-     *  You should call one of the initialization methods at some
-     *  point before the first optimize call.
-     *  Note: You can skip the processing of a params file by
-     *  setting params_file to "".
-     *  Set @par allow_clobber to true if you want to allow
-     *  overwriting options that are set by the params file.
-     */
-    virtual ApplicationReturnStatus Initialize(std::string params_file, bool allow_clobber = false);
-    /** Initialization method. This method reads options from the
-     *  params file and initializes the journalists. It returns
-     *  something other than Solve_Succeeded if there was a
-     *  problem in the initialization (such as an invalid option).
-     *  You should call one of the initialization methods at some
-     *  point before the first optimize call.
-     *  Note: You can skip the processing of a params file by
-     *  setting params_file to "".
-     *  Set @par allow_clobber to true if you want to allow
-     *  overwriting options that are set by the params file.
-     */
-    virtual ApplicationReturnStatus Initialize(const char* params_file, bool allow_clobber = false)
-    {
-       return Initialize(std::string(params_file), allow_clobber);
-    }
-    /** Initialize method. This method reads the options file specified
-     *  by the option_file_name option and initializes the journalists.
-     *  You should call this method at some point before the first optimize
-     *  call.
+    /** Initialize method. This method reads the params file and
+     *  initializes the journalists. You should call this method at
+     *  some point before the first optimize call. Note: you can skip
+     *  the processing of a params file by setting params_file to "".
      *  It returns something other than Solve_Succeeded if there was a
      *  problem in the initialization (such as an invalid option).
-     *  Set @par allow_clobber to true if you want to allow
-     *  overwriting options that are set by the options file.
      */
-    virtual ApplicationReturnStatus Initialize(bool allow_clobber = false);
+    virtual ApplicationReturnStatus Initialize(std::string params_file = "ipopt.opt");
+    virtual ApplicationReturnStatus Initialize(std::istream& is);
 
     /**@name Solve methods */
     //@{
@@ -191,18 +153,6 @@ namespace Ipopt
      *  method at the convenient time.  */
     void PrintCopyrightMessage();
 
-    /** Method to set whether non-ipopt non-bad_alloc exceptions
-     * are rethrown by Ipopt.
-     * By default, non-Ipopt and non-std::bad_alloc exceptions are
-     * caught by Ipopts initialization and optimization methods
-     * and the status NonIpopt_Exception_Thrown is returned.
-     * This function allows to enable rethrowing of such exceptions.
-     */
-    void RethrowNonIpoptException(bool dorethrow)
-    {
-       rethrow_nonipoptexception_ = dorethrow;
-    }
-
     /** @name Methods for IpoptTypeInfo */
     //@{
     static void RegisterOptions(SmartPtr<RegisteredOptions> roptions);
@@ -239,9 +189,6 @@ namespace Ipopt
     //@{
     /** Decide whether or not the ipopt.opt file should be read */
     bool read_params_dat_;
-
-    /** Decide whether non-ipopt non-bad_alloc exceptions should be rethrown */
-    bool rethrow_nonipoptexception_;
     //@}
 
     /** Journalist for reporting output */

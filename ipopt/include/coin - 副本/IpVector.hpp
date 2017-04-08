@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpVector.hpp 2472 2014-04-05 17:47:20Z stefan $
+// $Id: IpVector.hpp 2276 2013-05-05 12:33:44Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -447,13 +447,6 @@ namespace Ipopt
       TaggedObject(),
       owner_space_(owner_space),
       dot_cache_(10),
-      nrm2_cache_tag_(0),
-      asum_cache_tag_(0),
-      amax_cache_tag_(0),
-      max_cache_tag_(0),
-      min_cache_tag_(0),
-      sum_cache_tag_(0),
-      sumlogs_cache_tag_(0),
       cached_valid_(0)
   {
     DBG_ASSERT(IsValid(owner_space_));

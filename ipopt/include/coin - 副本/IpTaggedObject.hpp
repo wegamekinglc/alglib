@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpTaggedObject.hpp 2613 2015-11-04 14:42:02Z stefan $
+// $Id: IpTaggedObject.hpp 2276 2013-05-05 12:33:44Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -14,22 +14,7 @@
 #include "IpReferenced.hpp"
 #include "IpObserver.hpp"
 #include <limits>
-
-/* keyword to declare a thread-local variable according to http://en.wikipedia.org/wiki/Thread-local_storage
- * GCC < 4.5 on MacOS X does not support TLS
- * With Intel compiler on MacOS X, problems with TLS were reported.
- */
-#ifndef IPOPT_THREAD_LOCAL
-
-#if defined(_MSC_VER)
-#define IPOPT_THREAD_LOCAL __declspec(thread)
-#elif defined(__APPLE__) && ((defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__ < 405)) || defined(__INTEL_COMPILER))
-#define IPOPT_THREAD_LOCAL
-#else
-#define IPOPT_THREAD_LOCAL __thread
-#endif
-
-#endif
+#include <utility> // for std::pair
 
 namespace Ipopt
 {
@@ -47,7 +32,7 @@ namespace Ipopt
    * users of a class inheriting from TaggedObject follows like
    * this:
    * 
-   *  1. Initialize your own Tag to zero in constructor.
+   *  1. Initialize your own Tag by its default constructor.
    *  
    *  2. Before an expensive calculation,
    *      check if the TaggedObject has changed, passing in
@@ -76,13 +61,21 @@ namespace Ipopt
   class TaggedObject : public ReferencedObject, public Subject
   {
   public:
-    /** Type for the Tag values */
-    typedef unsigned int Tag;
+    /** Type for the Tag values
+     *
+     * To make the tag unique among all objects, we
+     * include the memory address of the object into the
+     * tag value.
+     */
+    typedef std::pair<const TaggedObject*, unsigned int> Tag;
 
     /** Constructor. */
     TaggedObject()
         :
-        Subject()
+        Subject(),
+        /* We can initialize the tag counter to 0, because this objects Tag
+         * will differ from a Tag() object in its first member. */
+        tagcount_(0)
     {
       ObjectChanged();
     }
@@ -97,7 +90,7 @@ namespace Ipopt
      */
     Tag GetTag() const
     {
-      return tag_;
+      return Tag(this, tagcount_);
     }
 
     /** Users of TaggedObjects call this to
@@ -107,7 +100,7 @@ namespace Ipopt
      */
     bool HasChanged(const Tag comparison_tag) const
     {
-      return (comparison_tag == tag_) ? false : true;
+      return (comparison_tag.first != this) || (comparison_tag.second != tagcount_);
     }
   protected:
     /** Objects derived from TaggedObject MUST call this
@@ -117,9 +110,8 @@ namespace Ipopt
     void ObjectChanged()
     {
       DBG_START_METH("TaggedObject::ObjectChanged()", 0);
-      tag_ = unique_tag_;
-      unique_tag_++;
-      DBG_ASSERT(unique_tag_ < std::numeric_limits<Tag>::max());
+      tagcount_++;
+      DBG_ASSERT(tagcount_ < std::numeric_limits<Tag::second_type>::max());
       // The Notify method from the Subject base class notifies all
       // registered Observers that this subject has changed.
       Notify(Observer::NT_Changed);
@@ -138,18 +130,12 @@ namespace Ipopt
     void operator=(const TaggedObject&);
     //@}
 
-    /** static data member that is incremented every
-     *  time ANY TaggedObject changes. This allows us
-     *  to obtain a unique Tag when the object changes
-     */
-    static IPOPT_THREAD_LOCAL Tag unique_tag_;
-
     /** The tag indicating the current state of the object.
      *  We use this to compare against the comparison_tag
-     *  in the HasChanged method. This member is updated
-     *  from the unique_tag_ every time the object changes.
+     *  in the HasChanged method. This member is increased
+     *  every time the object changes.
      */
-    Tag tag_;
+    Tag::second_type tagcount_;
 
     /** The index indicating the cache priority for this
      * TaggedObject. If a result that depended on this 
@@ -158,5 +144,16 @@ namespace Ipopt
      */
     Index cache_priority_;
   };
+
+  /** The addition of two tags - do not use.
+   *
+   * @note Do not use this operator, unless you really know what you are doing.
+   */
+  inline
+  TaggedObject::Tag operator+(const TaggedObject::Tag& tag1, const TaggedObject::Tag& tag2)
+  {
+    return TaggedObject::Tag(tag1.first, tag1.second + tag2.second);
+  }
+
 } // namespace Ipopt
 #endif

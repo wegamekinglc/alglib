@@ -9,7 +9,7 @@ target_link_libraries(optimizer alglib)
 
 if(MSVC)
     target_link_libraries(optimizer IpOptFSS)
-    target_link_libraries(optimizer IpOpt-vc10)
+    target_link_libraries(optimizer IpOpt-vc8)
 else()
     target_link_libraries(optimizer ipopt)
 endif()
@@ -36,6 +36,6 @@ if(MSVC)
 
     add_custom_command(TARGET optimizer POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${IPOPT_LIB_DIR}/IpOpt-vc10.dll"
+            "${IPOPT_LIB_DIR}/IpOpt-vc8.dll"
             ${BUILD_DIR}/Release)
 endif()

@@ -37,7 +37,7 @@ if(${CMAKE_USE_MKL_LIB} STREQUAL "TRUE")
 endif()
 
 if(MSVC)
-  set(IPOPT_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ipopt/lib/x64/ReleaseMKL)
+  set(IPOPT_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ipopt/lib/x64)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ipopt/include/coin)
   link_directories(${IPOPT_LIB_DIR})
 endif()

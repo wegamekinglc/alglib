@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpCachedResults.hpp 2472 2014-04-05 17:47:20Z stefan $
+// $Id: IpCachedResults.hpp 2276 2013-05-05 12:33:44Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -372,7 +372,7 @@ namespace Ipopt
         dependent_tags_[i] = dependents[i]->GetTag();
       }
       else {
-        dependent_tags_[i] = 0;
+        dependent_tags_[i] = TaggedObject::Tag();
       }
     }
   }
@@ -434,7 +434,7 @@ namespace Ipopt
     else {
       for (Index i=0; i<(Index)dependents.size(); i++) {
         if ( (dependents[i] && dependents[i]->GetTag() != dependent_tags_[i])
-             || (!dependents[i] && dependent_tags_[i] != 0) ) {
+             || (!dependents[i] && dependent_tags_[i] != TaggedObject::Tag()) ) {
           retVal = false;
           break;
         }
