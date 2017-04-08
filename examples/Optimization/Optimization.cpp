@@ -84,13 +84,13 @@ int main(int argc, char **argv)
     char buffer[100];
 
     // Please set the data file path here
-    sprintf(buffer, "../data/20160303_%d.csv", problemSize);
+    sprintf(buffer, "data/20160303_%d.csv", problemSize);
     std::string filaPath(buffer);
 
     boost::tuple<real_2d_array, real_1d_array, real_1d_array, real_1d_array>
         parameters;
 
-    try 
+    try
     {
         parameters = parameterReader(filaPath);
     }
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
         std::cout << e.what() << std::endl;
         throw;
     }
-    
+
     real_2d_array varMatrix = parameters.get<0>();
     real_1d_array tradingCost = parameters.get<1>();
     real_1d_array expectReturn = parameters.get<2>();
