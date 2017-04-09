@@ -226,7 +226,7 @@ int main(int argc, char **argv)
 
 		app->Options()->SetNumericValue("tol", 1e-8);
 		app->Options()->SetIntegerValue("print_level", 0);
-        app->Options()->SetStringValue("linear_solver", "ma57");
+        app->Options()->SetStringValue("linear_solver", "ma27");
 		app->Options()->SetStringValue("hessian_approximation", "limited-memory");
 		app->Options()->SetIntegerValue("limited_memory_max_history", 3);
 
