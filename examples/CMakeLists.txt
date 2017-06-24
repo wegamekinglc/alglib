@@ -1,2 +1,3 @@
 add_subdirectory(Optimization)
 add_subdirectory(optimizerTest)
+add_subdirectory(ipopt_example)

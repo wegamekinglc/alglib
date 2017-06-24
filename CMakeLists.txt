@@ -41,6 +41,11 @@ if(MSVC)
   link_directories(${IPOPT_LIB_DIR})
 endif()
 
+set(IPOPT_ROOT_DIR /home/wegamkeinglc/Documents/dev/svn/CoinIpopt)
+include_directories(${IPOPT_ROOT_DIR}/include/coin)
+link_directories(${IPOPT_ROOT_DIR}/lib)
+link_directories(/usr/local/lib)
+
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${CUDA_TOOLKIT_INCLUDE})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
